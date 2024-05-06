@@ -4,6 +4,15 @@ use crate::{
     Application,
 };
 
+#[derive(Debug, Default)]
+pub struct ShortCode {
+    pub(crate) macos: Option<String>,
+}
+
+impl ShortCode {
+    pub fn macos_code(&self) -> Option<&String> { self.macos.as_ref() }
+}
+
 #[derive(Debug)]
 pub struct MenuItem {
     pub(crate) menu_item_impl: MenuItemImpl,
@@ -32,21 +41,29 @@ impl MenuItem {
     fn set_action(&mut self, action: Option<fn()>) { self.menu_item_impl.set_action(action); }
 
     fn set_submenu(&mut self, submenu: Option<Menu>) { self.menu_item_impl.set_submenu(submenu); }
+
+    fn set_short_code(&mut self, short_code: ShortCode) {
+        self.menu_item_impl.set_short_code(short_code);
+    }
+
+    fn short_code(&self) -> &ShortCode { self.menu_item_impl.short_code() }
 }
 
 #[derive(Debug)]
 pub struct MenuItemBuilder {
-    title:   Option<String>,
-    action:  Option<fn()>,
-    submenu: Option<Menu>,
+    title:      Option<String>,
+    action:     Option<fn()>,
+    submenu:    Option<Menu>,
+    short_code: ShortCode,
 }
 
 impl MenuItemBuilder {
     fn new() -> Self {
         Self {
-            title:   None,
-            action:  None,
-            submenu: None,
+            title:      None,
+            action:     None,
+            submenu:    None,
+            short_code: Default::default(),
         }
     }
 
@@ -68,6 +85,14 @@ impl MenuItemBuilder {
         self
     }
 
+    pub fn with_macos_short_code<S>(mut self, short_code: S) -> MenuItemBuilder
+    where
+        S: Into<String>,
+    {
+        self.short_code.macos = Some(short_code.into());
+        self
+    }
+
     pub fn build(self, app: &Application) -> MenuItem {
         let mut item = MenuItem::new(app);
 
@@ -77,6 +102,7 @@ impl MenuItemBuilder {
 
         item.set_action(self.action);
         item.set_submenu(self.submenu);
+        item.set_short_code(self.short_code);
 
         item
     }

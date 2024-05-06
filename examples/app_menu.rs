@@ -6,6 +6,7 @@ fn create_menu(app: &Application) -> Menu {
         .with_action(|| {
             println!("`Quit` clicked!");
         })
+        .with_macos_short_code("q")
         .build(app);
     let app_menu = Menu::builder().with_item(quit_menu_item).build(app);
 

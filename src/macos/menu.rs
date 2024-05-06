@@ -1,5 +1,5 @@
 use objc2::{declare_class, msg_send_id, mutability, rc::Id, sel, ClassType, DeclaredClass};
-use objc2_app_kit::{NSMenu, NSMenuItem};
+use objc2_app_kit::{NSEventModifierFlags, NSMenu, NSMenuItem};
 use objc2_foundation::{MainThreadMarker, NSObject, NSObjectProtocol, NSString};
 
 use crate::{
@@ -7,6 +7,7 @@ use crate::{
     Application,
     Menu,
     MenuItem,
+    ShortCode,
 };
 
 #[derive(Debug)]
@@ -55,11 +56,12 @@ impl ActionHandler {
 
 #[derive(Debug)]
 pub(crate) struct MenuItemImpl {
-    pub(super) mtm:     MainThreadMarker,
-    pub(crate) title:   String,
-    pub(super) action:  Option<Id<ActionHandler>>,
-    pub(super) native:  Id<NSMenuItem>,
-    pub(super) submenu: Option<Menu>,
+    pub(super) mtm:        MainThreadMarker,
+    pub(crate) title:      String,
+    pub(super) action:     Option<Id<ActionHandler>>,
+    pub(crate) short_code: ShortCode,
+    pub(super) native:     Id<NSMenuItem>,
+    pub(super) submenu:    Option<Menu>,
 }
 
 impl MenuItemImpl {
@@ -71,7 +73,62 @@ impl MenuItemImpl {
             action: None,
             native: NSMenuItem::new(mtm),
             submenu: None,
+            short_code: Default::default(),
         }
+    }
+
+    fn parse_short_code(&self, code: &String) {
+        let parts = code.split("+").collect::<Vec<&str>>();
+        let mut masks = Vec::new();
+        let mut code = String::from("");
+
+        for part in parts.iter() {
+            match *part {
+                "Control" => {
+                    masks.push(NSEventModifierFlags::NSEventModifierFlagControl.0);
+                }
+                "Command" => {
+                    masks.push(NSEventModifierFlags::NSEventModifierFlagCommand.0);
+                }
+                "Help" => {
+                    masks.push(NSEventModifierFlags::NSEventModifierFlagHelp.0);
+                }
+                "Function" => {
+                    masks.push(NSEventModifierFlags::NSEventModifierFlagFunction.0);
+                }
+                "Option" => {
+                    masks.push(NSEventModifierFlags::NSEventModifierFlagOption.0);
+                }
+                "Shift" => {
+                    masks.push(NSEventModifierFlags::NSEventModifierFlagShift.0);
+                }
+                "CapsLock" => {
+                    masks.push(NSEventModifierFlags::NSEventModifierFlagCapsLock.0);
+                }
+                "NumPad" => {
+                    masks.push(NSEventModifierFlags::NSEventModifierFlagNumericPad.0);
+                }
+                c => {
+                    code = c.to_owned();
+                }
+            }
+        }
+
+        let code = NSString::from_str(&code);
+        unsafe { self.native.setKeyEquivalent(&code) };
+
+        let mut mask = if masks.is_empty() {
+            NSEventModifierFlags::NSEventModifierFlagCommand.0
+        } else {
+            masks[0]
+        };
+
+        for m in masks.iter().skip(1) {
+            mask |= m;
+        }
+
+        self.native
+            .setKeyEquivalentModifierMask(NSEventModifierFlags(mask));
     }
 }
 
@@ -112,6 +169,18 @@ impl MenuItemHandler for MenuItemImpl {
             self.native.setSubmenu(None);
         }
     }
+
+    #[inline]
+    fn set_short_code(&mut self, short_code: ShortCode) {
+        self.short_code = short_code;
+
+        if let Some(code) = &self.short_code.macos {
+            self.parse_short_code(code);
+        }
+    }
+
+    #[inline]
+    fn short_code(&self) -> &ShortCode { &self.short_code }
 }
 
 #[derive(Debug)]

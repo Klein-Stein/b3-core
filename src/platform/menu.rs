@@ -1,4 +1,4 @@
-use crate::{Menu, MenuItem};
+use crate::{Menu, MenuItem, ShortCode};
 
 pub(crate) trait MenuItemHandler {
     fn set_title<S>(&mut self, title: S)
@@ -9,6 +9,9 @@ pub(crate) trait MenuItemHandler {
     fn set_action(&mut self, action: Option<fn()>);
 
     fn set_submenu(&mut self, submenu: Option<Menu>);
+
+    fn set_short_code(&mut self, short_code: ShortCode);
+    fn short_code(&self) -> &ShortCode;
 }
 
 pub(crate) trait MenuHandler {
