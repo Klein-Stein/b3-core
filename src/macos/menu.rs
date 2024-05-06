@@ -73,15 +73,6 @@ impl MenuItemImpl {
             submenu: None,
         }
     }
-
-    pub(super) fn invalidate(&self) {
-        if let Some(submenu) = &self.submenu {
-            submenu.menu_impl.invalidate();
-            self.native.setSubmenu(Some(&submenu.menu_impl.native));
-        } else {
-            self.native.setSubmenu(None);
-        }
-    }
 }
 
 impl MenuItemHandler for MenuItemImpl {
@@ -113,7 +104,14 @@ impl MenuItemHandler for MenuItemImpl {
     }
 
     #[inline]
-    fn set_submenu(&mut self, submenu: Option<Menu>) { self.submenu = submenu; }
+    fn set_submenu(&mut self, submenu: Option<Menu>) {
+        self.submenu = submenu;
+        if let Some(submenu) = &self.submenu {
+            self.native.setSubmenu(Some(&submenu.menu_impl.native));
+        } else {
+            self.native.setSubmenu(None);
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -126,16 +124,13 @@ impl MenuImpl {
     pub(crate) fn new(app: &Application, items: Vec<MenuItem>) -> Self {
         let native = NSMenu::new(app.application_impl.delegate.mtm());
 
+        for item in items.iter() {
+            native.addItem(&item.menu_item_impl.native);
+        }
+
         Self {
             native,
             items,
-        }
-    }
-
-    pub(super) fn invalidate(&self) {
-        for item in self.items.iter() {
-            item.menu_item_impl.invalidate();
-            self.native.addItem(&item.menu_item_impl.native);
         }
     }
 }

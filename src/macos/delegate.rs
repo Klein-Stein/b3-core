@@ -1,16 +1,15 @@
 use std::cell::RefCell;
 
 use objc2::{declare_class, msg_send_id, mutability, rc::Id, ClassType, DeclaredClass};
-use objc2_app_kit::{NSApplication, NSApplicationDelegate, NSMenu, NSMenuItem};
+use objc2_app_kit::{NSApplication, NSApplicationDelegate, NSMenu};
 use objc2_foundation::{MainThreadMarker, NSNotification, NSObject, NSObjectProtocol};
 
 #[derive(Debug)]
 #[allow(unused)]
 pub(super) struct AppDelegateIvars {
-    mtm:        MainThreadMarker,
-    app:        Id<NSApplication>,
-    root_menu:  RefCell<Option<Id<NSMenu>>>,
-    root_items: RefCell<Vec<Id<NSMenuItem>>>,
+    mtm:  MainThreadMarker,
+    app:  Id<NSApplication>,
+    menu: RefCell<Option<Id<NSMenu>>>,
 }
 
 declare_class!(
@@ -50,8 +49,7 @@ impl AppDelegate {
         let this = this.set_ivars(AppDelegateIvars {
             mtm,
             app,
-            root_menu: RefCell::new(None),
-            root_items: RefCell::new(Vec::new()),
+            menu: RefCell::new(None),
         });
         unsafe { msg_send_id![super(this), init] }
     }
@@ -63,21 +61,14 @@ impl AppDelegate {
     pub(super) fn app(&self) -> &Id<NSApplication> { &self.ivars().app }
 
     #[inline]
-    pub(super) fn set_menu(&self, root_menu: Option<Id<NSMenu>>, root_items: Vec<Id<NSMenuItem>>) {
-        let mut ivar_menu = self.ivars().root_menu.borrow_mut();
-        *ivar_menu = root_menu;
-
-        let mut ivar_menu_items = self.ivars().root_items.borrow_mut();
-        *ivar_menu_items = root_items;
+    pub(super) fn set_menu(&self, menu: Option<Id<NSMenu>>) {
+        let mut ivar_menu = self.ivars().menu.borrow_mut();
+        *ivar_menu = menu;
     }
 
     fn invalidate_menu(&self) {
-        if let Some(menu) = self.ivars().root_menu.borrow_mut().as_mut() {
+        if let Some(menu) = self.ivars().menu.borrow_mut().as_mut() {
             self.ivars().app.setMainMenu(Some(&menu));
-
-            for item in self.ivars().root_items.borrow().iter() {
-                menu.addItem(item);
-            }
         }
     }
 }

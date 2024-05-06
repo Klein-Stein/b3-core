@@ -1,5 +1,5 @@
 use objc2::{rc::Id, runtime::ProtocolObject};
-use objc2_app_kit::{NSApplication, NSApplicationActivationPolicy, NSMenuItem};
+use objc2_app_kit::{NSApplication, NSApplicationActivationPolicy};
 use objc2_foundation::MainThreadMarker;
 
 use super::AppDelegate;
@@ -38,17 +38,9 @@ impl ApplicationHandler for ApplicationImpl {
         self.menu = menu;
 
         if let Some(menu) = &self.menu {
-            let root_menu = Some(menu.menu_impl.native.clone());
-
-            let mut items: Vec<Id<NSMenuItem>> = Vec::new();
-            for item in menu.menu_impl.items.iter() {
-                item.menu_item_impl.invalidate();
-                items.push(item.menu_item_impl.native.clone());
-            }
-
-            self.delegate.set_menu(root_menu, items);
+            self.delegate.set_menu(Some(menu.menu_impl.native.clone()));
         } else {
-            self.delegate.set_menu(None, Vec::new());
+            self.delegate.set_menu(None);
         }
     }
 }
