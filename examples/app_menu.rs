@@ -1,6 +1,29 @@
 use b3_platform::{Application, Menu, MenuItem};
 
 fn create_menu(app: &Application) -> Menu {
+    let global_settings_menu_item = MenuItem::builder()
+        .with_title("Global Settings...")
+        .with_action(|| {
+            println!("`Global Settings` clicked!");
+        })
+        .with_macos_short_code("P")
+        .build(app);
+    let local_settigs_menu_item = MenuItem::builder()
+        .with_title("Local Setting...")
+        .with_action(|| {
+            println!("`Local Settings` clicked!");
+        })
+        .with_macos_short_code("q")
+        .build(app);
+    let settings_menu = Menu::builder()
+        .with_item(global_settings_menu_item)
+        .with_item(local_settigs_menu_item)
+        .build(app);
+
+    let settings_menu_item = MenuItem::builder()
+        .with_title("Settings")
+        .with_submenu(settings_menu)
+        .build(app);
     let quit_menu_item = MenuItem::builder()
         .with_title("Quit")
         .with_action(|| {
@@ -8,7 +31,11 @@ fn create_menu(app: &Application) -> Menu {
         })
         .with_macos_short_code("q")
         .build(app);
-    let app_menu = Menu::builder().with_item(quit_menu_item).build(app);
+    let app_menu = Menu::builder()
+        .with_item(settings_menu_item)
+        .with_item(MenuItem::separator(app))
+        .with_item(quit_menu_item)
+        .build(app);
 
     let close_all_menu_item = MenuItem::builder()
         .with_title("Close All")

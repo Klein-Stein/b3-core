@@ -23,7 +23,13 @@ impl MenuItem {
 
     fn new(app: &Application) -> Self {
         Self {
-            menu_item_impl: MenuItemImpl::new(app),
+            menu_item_impl: MenuItemImpl::new(app, false),
+        }
+    }
+
+    pub fn separator(app: &Application) -> Self {
+        Self {
+            menu_item_impl: MenuItemImpl::new(app, true),
         }
     }
 }

@@ -65,13 +65,17 @@ pub(crate) struct MenuItemImpl {
 }
 
 impl MenuItemImpl {
-    pub(crate) fn new(app: &Application) -> Self {
+    pub(crate) fn new(app: &Application, separator: bool) -> Self {
         let mtm = app.application_impl.delegate.mtm();
         Self {
             mtm,
             title: "".to_owned(),
             action: None,
-            native: NSMenuItem::new(mtm),
+            native: if separator {
+                NSMenuItem::separatorItem(mtm)
+            } else {
+                NSMenuItem::new(mtm)
+            },
             submenu: None,
             short_code: Default::default(),
         }
