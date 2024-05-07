@@ -185,6 +185,12 @@ impl MenuItemHandler for MenuItemImpl {
 
     #[inline]
     fn short_code(&self) -> &ShortCode { &self.short_code }
+
+    #[inline]
+    fn set_enabled(&mut self, enabled: bool) { unsafe { self.native.setEnabled(enabled) }; }
+
+    #[inline]
+    fn enabled(&self) -> bool { unsafe { self.native.isEnabled() } }
 }
 
 #[derive(Debug)]
@@ -196,6 +202,8 @@ pub(crate) struct MenuImpl {
 impl MenuImpl {
     pub(crate) fn new(app: &Application, items: Vec<MenuItem>) -> Self {
         let native = NSMenu::new(app.application_impl.delegate.mtm());
+
+        unsafe { native.setAutoenablesItems(false) };
 
         for item in items.iter() {
             native.addItem(&item.menu_item_impl.native);
@@ -209,6 +217,7 @@ impl MenuImpl {
 }
 
 impl MenuHandler for MenuImpl {
+    #[inline]
     fn add_item(&mut self, item: MenuItem) {
         self.native.addItem(&item.menu_item_impl.native);
         self.items.push(item);

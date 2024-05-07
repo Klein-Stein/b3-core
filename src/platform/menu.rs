@@ -12,6 +12,9 @@ pub(crate) trait MenuItemHandler {
 
     fn set_short_code(&mut self, short_code: ShortCode);
     fn short_code(&self) -> &ShortCode;
+
+    fn set_enabled(&mut self, enabled: bool);
+    fn enabled(&self) -> bool;
 }
 
 pub(crate) trait MenuHandler {

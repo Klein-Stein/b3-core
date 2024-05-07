@@ -7,6 +7,7 @@ fn create_menu(app: &Application) -> Menu {
             println!("`Global Settings` clicked!");
         })
         .with_macos_short_code("P")
+        .with_enabled(false)
         .build(app);
     let local_settigs_menu_item = MenuItem::builder()
         .with_title("Local Setting...")

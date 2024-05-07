@@ -53,6 +53,10 @@ impl MenuItem {
     }
 
     fn short_code(&self) -> &ShortCode { self.menu_item_impl.short_code() }
+
+    fn set_enabled(&mut self, enabled: bool) { self.menu_item_impl.set_enabled(enabled); }
+
+    fn enabled(&self) -> bool { self.menu_item_impl.enabled() }
 }
 
 #[derive(Debug)]
@@ -61,6 +65,7 @@ pub struct MenuItemBuilder {
     action:     Option<fn()>,
     submenu:    Option<Menu>,
     short_code: ShortCode,
+    enabled:    Option<bool>,
 }
 
 impl MenuItemBuilder {
@@ -70,6 +75,7 @@ impl MenuItemBuilder {
             action:     None,
             submenu:    None,
             short_code: Default::default(),
+            enabled:    None,
         }
     }
 
@@ -99,6 +105,11 @@ impl MenuItemBuilder {
         self
     }
 
+    pub fn with_enabled(mut self, enabled: bool) -> MenuItemBuilder {
+        self.enabled = Some(enabled);
+        self
+    }
+
     pub fn build(self, app: &Application) -> MenuItem {
         let mut item = MenuItem::new(app);
 
@@ -109,6 +120,10 @@ impl MenuItemBuilder {
         item.set_action(self.action);
         item.set_submenu(self.submenu);
         item.set_short_code(self.short_code);
+
+        if let Some(enabled) = self.enabled {
+            item.set_enabled(enabled);
+        }
 
         item
     }
