@@ -11,7 +11,12 @@ path = "examples/hello_world.rs"
 name = "app-menu"
 path = "examples/app_menu.rs"
 
+[[example]]
+name = "event-handling"
+path = "examples/event_handling.rs"
+
 [dependencies]
+core-foundation = "0.9.4"
 objc2 = "0.5.1"
-objc2-app-kit = {version = "0.2.0", features = ["NSApplication", "NSEvent", "NSMenu", "NSMenuItem", "NSResponder", "NSRunningApplication"]}
-objc2-foundation = {version = "0.2.0", features = ["NSNotification", "NSObject", "NSString", "NSThread"]}
+objc2-app-kit = {version = "0.2.0", features = ["NSApplication", "NSEvent", "NSGraphicsContext", "NSMenu", "NSMenuItem", "NSResponder", "NSRunningApplication", "NSWindow"]}
+objc2-foundation = {version = "0.2.0", features = ["NSEnumerator", "NSNotification", "NSObject", "NSString", "NSThread"]}

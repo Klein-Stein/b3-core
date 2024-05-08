@@ -66,7 +66,7 @@ pub(crate) struct MenuItemImpl {
 
 impl MenuItemImpl {
     pub(crate) fn new(app: &Application, separator: bool) -> Self {
-        let mtm = app.application_impl.delegate.mtm();
+        let mtm = app.application_impl.mtm;
         Self {
             mtm,
             title: "".to_owned(),
@@ -201,7 +201,7 @@ pub(crate) struct MenuImpl {
 
 impl MenuImpl {
     pub(crate) fn new(app: &Application, items: Vec<MenuItem>) -> Self {
-        let native = NSMenu::new(app.application_impl.delegate.mtm());
+        let native = NSMenu::new(app.application_impl.mtm);
 
         unsafe { native.setAutoenablesItems(false) };
 

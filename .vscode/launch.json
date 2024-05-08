@@ -96,6 +96,43 @@
             },
             "args": [],
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'event-handling'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=event-handling",
+                    "--package=b3-platform"
+                ],
+                "filter": {
+                    "name": "event-handling",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'event-handling'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=event-handling",
+                    "--package=b3-platform"
+                ],
+                "filter": {
+                    "name": "event-handling",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
         }
     ]
 }

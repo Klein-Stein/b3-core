@@ -1,46 +1,115 @@
-use objc2::{rc::Id, runtime::ProtocolObject};
-use objc2_app_kit::{NSApplication, NSApplicationActivationPolicy};
+use std::rc::{Rc, Weak};
+
+use core_foundation::{
+    base::CFIndex,
+    runloop::{
+        kCFRunLoopAfterWaiting,
+        kCFRunLoopBeforeWaiting,
+        kCFRunLoopExit,
+        CFRunLoopObserverContext,
+    },
+};
+use objc2::{
+    rc::{autoreleasepool, Id},
+    runtime::ProtocolObject,
+};
+use objc2_app_kit::{NSApplication, NSApplicationActivationPolicy, NSMenu};
 use objc2_foundation::MainThreadMarker;
 
-use super::AppDelegate;
-use crate::{platform::ApplicationHandler, Menu};
+use super::{
+    delegate::AppDelegate,
+    runloop::{control_flow_begin_handler, control_flow_end_handler, PanicInfo, RunLoop},
+};
+use crate::{platform::ApplicationHandler, EventHandler, Menu};
 
 pub(crate) struct ApplicationImpl {
-    pub(super) delegate: Id<AppDelegate>,
+    pub(super) mtm:      MainThreadMarker,
+    pub(super) delegate: Option<Id<AppDelegate>>,
     pub(crate) menu:     Option<Menu>,
 }
 
 impl ApplicationImpl {
     pub(crate) fn new() -> Self {
-        let mtm: MainThreadMarker = MainThreadMarker::new().unwrap();
-
-        let app = NSApplication::sharedApplication(mtm);
-        app.setActivationPolicy(NSApplicationActivationPolicy::Regular);
-
-        // configure the application delegate
-        let delegate = AppDelegate::new(mtm, app.clone());
-        let object = ProtocolObject::from_ref(&*delegate);
-        app.setDelegate(Some(object));
-
+        let mtm: MainThreadMarker = MainThreadMarker::new()
+            .expect("on macOS, `Application` instance must be created on the main thread!");
         Self {
-            delegate,
+            mtm,
+            delegate: None,
             menu: None,
+        }
+    }
+
+    #[inline]
+    fn get_native_menu(&self) -> Option<Id<NSMenu>> {
+        if let Some(menu) = &self.menu {
+            Some(menu.menu_impl.native.clone())
+        } else {
+            None
+        }
+    }
+
+    fn sync_menu(&self) {
+        if let Some(delegate) = &self.delegate {
+            let menu = self.get_native_menu();
+            delegate.set_menu(menu);
         }
     }
 }
 
 impl ApplicationHandler for ApplicationImpl {
     #[inline]
-    fn run(self) { unsafe { self.delegate.app().run() }; }
+    fn run(mut self, handler: impl EventHandler + 'static) {
+        let app = NSApplication::sharedApplication(self.mtm);
+        app.setActivationPolicy(NSApplicationActivationPolicy::Regular);
+
+        let menu = self.get_native_menu();
+
+        // configure the application delegate
+        let delegate = AppDelegate::new(self.mtm, menu);
+        autoreleasepool(|_| {
+            let object = ProtocolObject::from_ref(&*delegate);
+            app.setDelegate(Some(object));
+        });
+
+        self.delegate = Some(delegate);
+
+        let panic_info: Rc<PanicInfo> = Default::default();
+        setup_control_flow_observers(Rc::downgrade(&panic_info));
+
+        autoreleasepool(|_| {
+            // SAFETY: We do not run the application re-entrantly
+            unsafe { app.run() };
+        });
+    }
 
     #[inline]
     fn set_menu(&mut self, menu: Option<Menu>) {
         self.menu = menu;
+        self.sync_menu();
+    }
+}
 
-        if let Some(menu) = &self.menu {
-            self.delegate.set_menu(Some(menu.menu_impl.native.clone()));
-        } else {
-            self.delegate.set_menu(None);
-        }
+fn setup_control_flow_observers(panic_info: Weak<PanicInfo>) {
+    unsafe {
+        let mut context = CFRunLoopObserverContext {
+            info:            Weak::into_raw(panic_info) as *mut _,
+            version:         0,
+            retain:          None,
+            release:         None,
+            copyDescription: None,
+        };
+        let run_loop = RunLoop::get();
+        run_loop.add_observer(
+            kCFRunLoopAfterWaiting,
+            CFIndex::min_value(),
+            control_flow_begin_handler,
+            &mut context as *mut _,
+        );
+        run_loop.add_observer(
+            kCFRunLoopExit | kCFRunLoopBeforeWaiting,
+            CFIndex::max_value(),
+            control_flow_end_handler,
+            &mut context as *mut _,
+        );
     }
 }

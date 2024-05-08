@@ -1,4 +1,4 @@
-use b3_platform::{Application, Menu, MenuItem};
+use b3_platform::{Application, Event, Menu, MenuItem};
 
 fn create_menu(app: &Application) -> Menu {
     let global_settings_menu_item = MenuItem::builder()
@@ -64,5 +64,5 @@ fn main() {
     let mut app = Application::new();
     let menu = create_menu(&app);
     app.set_menu(Some(menu));
-    app.run();
+    app.run(|_app: &Application, event: Event| println!("{:?}", event));
 }
