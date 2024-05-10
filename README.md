@@ -1,6 +1,13 @@
 # B3. Platform
 
-Cross-platform GUI framework
+**B3. Platform** is a cross-platform framework that provides access and management of the main elements of a graphical application:
+- events including mouse, keyboard and touchpad events,
+- menus: application, context and etc.,
+- windows,
+- notifications,
+- tray.
+
+The framework was heavily inspired by [winit][winit] crate.
 
 ## Roadmap
 
@@ -14,5 +21,7 @@ Cross-platform GUI framework
 
 This project is distributed under the [MIT license][license].
 
+[winit]:
+https://github.com/rust-windowing/winit
 [license]:
 LICENSE
