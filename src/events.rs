@@ -1,15 +1,13 @@
-use crate::Application;
-
 #[derive(Debug)]
 pub enum LifeCycleEvent {
-    Started,
-    UpdateRequsted,
-    Finished,
+    Start,
+    UpdateRequst,
+    Finish,
 }
 
 #[derive(Debug)]
 pub enum MenuEvent {
-    MenuItemClicked,
+    MenuItemClick,
 }
 
 #[derive(Debug)]
@@ -19,12 +17,12 @@ pub enum Event {
 }
 
 pub trait EventHandler {
-    fn on_event(&mut self, app: &Application, event: Event);
+    fn on_event(&self, event: Event);
 }
 
 impl<F> EventHandler for F
 where
-    F: FnMut(&Application, Event),
+    F: Fn(Event),
 {
-    fn on_event(&mut self, app: &Application, event: Event) { self(app, event); }
+    fn on_event(&self, event: Event) { self(event); }
 }

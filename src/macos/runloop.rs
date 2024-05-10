@@ -8,7 +8,7 @@ use std::{
 };
 
 use core_foundation::{
-    base::{CFIndex, CFOptionFlags},
+    base::{Boolean, CFIndex, CFOptionFlags},
     runloop::{
         kCFRunLoopAfterWaiting,
         kCFRunLoopBeforeWaiting,
@@ -29,7 +29,9 @@ use objc2::rc::{autoreleasepool, Id};
 use objc2_app_kit::{NSApplication, NSEvent, NSEventModifierFlags, NSEventSubtype, NSEventType};
 use objc2_foundation::{MainThreadMarker, NSPoint};
 
-use super::{delegate::AppDelegate, ffi};
+use super::delegate::AppDelegate;
+
+const TRUE: Boolean = 1;
 
 #[derive(Default)]
 pub struct PanicInfo {
@@ -189,8 +191,8 @@ impl RunLoop {
             CFRunLoopObserverCreate(
                 ptr::null_mut(),
                 flags,
-                ffi::TRUE, // Indicates we want this to run repeatedly
-                priority,  // The lower the value, the sooner this will run
+                TRUE,     // Indicates we want this to run repeatedly
+                priority, // The lower the value, the sooner this will run
                 handler,
                 context,
             )

@@ -9,7 +9,7 @@ use objc2_app_kit::{NSApplication, NSApplicationActivationPolicy, NSApplicationD
 use objc2_foundation::{MainThreadMarker, NSNotification, NSObject, NSObjectProtocol};
 
 use super::runloop::PanicInfo;
-use crate::macos::runloop::stop_app_immediately;
+use crate::{macos::runloop::stop_app_immediately, Event, EventHandler, LifeCycleEvent};
 
 #[derive(Debug)]
 pub(super) struct ActivationPolicy(NSApplicationActivationPolicy);
@@ -18,13 +18,27 @@ impl Default for ActivationPolicy {
     fn default() -> Self { Self(NSApplicationActivationPolicy::Regular) }
 }
 
-#[derive(Debug, Default)]
 #[allow(unused)]
 pub(super) struct Ivars {
     activation_policy: ActivationPolicy,
     activate_ignoring_other_apps: bool,
     menu: RefCell<Option<Id<NSMenu>>>,
     stop_on_launch: Cell<bool>,
+    handler: Box<dyn EventHandler>,
+}
+
+impl Debug for Ivars {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Ivars")
+            .field("activation_policy", &self.activation_policy)
+            .field(
+                "activate_ignoring_other_apps",
+                &self.activate_ignoring_other_apps,
+            )
+            .field("menu", &self.menu)
+            .field("stop_on_launch", &self.stop_on_launch)
+            .finish()
+    }
 }
 
 declare_class!(
@@ -62,6 +76,8 @@ declare_class!(
 
             self.invalidate_menu(&app);
 
+            self.handle_event(Event::LifeCycle(LifeCycleEvent::Start));
+
             // If the application is being launched via `EventLoop::pump_app_events()` then we'll
             // want to stop the app once it is launched (and return to the external loop)
             //
@@ -79,17 +95,25 @@ declare_class!(
         }
 
         #[method(applicationWillTerminate:)]
-        fn will_terminate(&self, _notification: &NSNotification) {}
+        fn will_terminate(&self, _notification: &NSNotification) {
+            self.handle_event(Event::LifeCycle(LifeCycleEvent::Finish));
+        }
     }
 );
 
 impl AppDelegate {
-    pub(super) fn new(mtm: MainThreadMarker, menu: Option<Id<NSMenu>>) -> Id<Self> {
+    pub(super) fn new(
+        mtm: MainThreadMarker,
+        menu: Option<Id<NSMenu>>,
+        handler: impl EventHandler + 'static,
+    ) -> Id<Self> {
         let this = mtm.alloc();
         let this = this.set_ivars(Ivars {
             activate_ignoring_other_apps: true,
             menu: RefCell::new(menu),
-            ..Default::default()
+            activation_policy: Default::default(),
+            stop_on_launch: Cell::new(false),
+            handler: Box::new(handler),
         });
         unsafe { msg_send_id![super(this), init] }
     }
@@ -105,6 +129,8 @@ impl AppDelegate {
             panic!("tried to get a delegate that was not the one Winit has registered")
         }
     }
+
+    fn handle_event(&self, event: Event) { self.ivars().handler.on_event(event); }
 
     // Called by RunLoopObserver after finishing waiting for new events
     pub fn wakeup(&self, panic_info: Weak<PanicInfo>) {}

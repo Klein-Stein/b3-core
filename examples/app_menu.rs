@@ -64,5 +64,5 @@ fn main() {
     let mut app = Application::new();
     let menu = create_menu(&app);
     app.set_menu(Some(menu));
-    app.run(|_app: &Application, event: Event| println!("{:?}", event));
+    app.run(|event: Event| println!("{:?}", event));
 }

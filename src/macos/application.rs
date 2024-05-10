@@ -58,14 +58,14 @@ impl ApplicationImpl {
 
 impl ApplicationHandler for ApplicationImpl {
     #[inline]
-    fn run(mut self, handler: impl EventHandler + 'static) {
+    fn run(&mut self, handler: impl EventHandler + 'static) {
         let app = NSApplication::sharedApplication(self.mtm);
         app.setActivationPolicy(NSApplicationActivationPolicy::Regular);
 
         let menu = self.get_native_menu();
 
         // configure the application delegate
-        let delegate = AppDelegate::new(self.mtm, menu);
+        let delegate = AppDelegate::new(self.mtm, menu, handler);
         autoreleasepool(|_| {
             let object = ProtocolObject::from_ref(&*delegate);
             app.setDelegate(Some(object));

@@ -13,5 +13,7 @@ impl Application {
 
     pub fn set_menu(&mut self, menu: Option<Menu>) { self.application_impl.set_menu(menu); }
 
-    pub fn run(self, handler: impl EventHandler + 'static) { self.application_impl.run(handler); }
+    pub fn run(mut self, handler: impl EventHandler + 'static) {
+        self.application_impl.run(handler);
+    }
 }
