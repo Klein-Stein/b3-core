@@ -13,13 +13,11 @@ The framework was heavily inspired by [winit][winit] crate.
 
 If you want to make a **Pull Request** or open a new **Issue**, please, make sure that you are on [GitHub.com][github], and not project's mirrors.
 
-### Main
+**Main:**
+  - **GitHub**: https://github.com/Klein-Stein/b3-platform
 
-**GitHub**: https://github.com/Klein-Stein/b3-platform
-
-### Mirror
-
-**GitFlic**: https://gitflic.ru/project/klein-stein/b3-platform
+**Mirror:**
+  - **GitFlic**: https://gitflic.ru/project/klein-stein/b3-platform
 
 ## Roadmap
 
