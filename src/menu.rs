@@ -59,7 +59,7 @@ impl MenuItem {
         self.menu_item_impl.set_title(title);
     }
 
-    fn title(&self) -> &String { self.menu_item_impl.title() }
+    fn title(&self) -> String { self.menu_item_impl.title() }
 
     fn set_action(&mut self, action: Option<Action>) { self.menu_item_impl.set_action(action); }
 

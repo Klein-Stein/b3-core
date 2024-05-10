@@ -133,6 +133,43 @@
             },
             "args": [],
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'empty-window'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=empty-window",
+                    "--package=b3-platform"
+                ],
+                "filter": {
+                    "name": "empty-window",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'empty-window'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=empty-window",
+                    "--package=b3-platform"
+                ],
+                "filter": {
+                    "name": "empty-window",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
         }
     ]
 }

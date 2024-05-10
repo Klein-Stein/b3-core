@@ -4,7 +4,7 @@ pub(crate) trait MenuItemHandler {
     fn set_title<S>(&mut self, title: S)
     where
         S: Into<String>;
-    fn title(&self) -> &String;
+    fn title(&self) -> String;
 
     fn set_action(&mut self, action: Option<Action>);
 

@@ -29,7 +29,7 @@ use objc2::rc::{autoreleasepool, Id};
 use objc2_app_kit::{NSApplication, NSEvent, NSEventModifierFlags, NSEventSubtype, NSEventType};
 use objc2_foundation::{MainThreadMarker, NSPoint};
 
-use super::delegate::AppDelegate;
+use super::app_delegate::AppDelegate;
 
 const TRUE: Boolean = 1;
 

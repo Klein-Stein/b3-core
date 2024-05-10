@@ -1,4 +1,7 @@
-use std::rc::{Rc, Weak};
+use std::{
+    collections::HashMap,
+    rc::{Rc, Weak},
+};
 
 use core_foundation::{
     base::CFIndex,
@@ -17,15 +20,16 @@ use objc2_app_kit::{NSApplication, NSApplicationActivationPolicy, NSMenu};
 use objc2_foundation::MainThreadMarker;
 
 use super::{
-    delegate::AppDelegate,
+    app_delegate::AppDelegate,
     runloop::{control_flow_begin_handler, control_flow_end_handler, PanicInfo, RunLoop},
 };
-use crate::{platform::ApplicationHandler, EventHandler, Menu};
+use crate::{platform::ApplicationHandler, EventHandler, Menu, Window, WindowId};
 
 pub(crate) struct ApplicationImpl {
     pub(super) mtm:      MainThreadMarker,
     pub(super) delegate: Option<Id<AppDelegate>>,
     pub(crate) menu:     Option<Menu>,
+    pub(crate) windows:  HashMap<WindowId, Window>,
 }
 
 impl ApplicationImpl {
@@ -36,6 +40,7 @@ impl ApplicationImpl {
             mtm,
             delegate: None,
             menu: None,
+            windows: HashMap::new(),
         }
     }
 
@@ -87,6 +92,15 @@ impl ApplicationHandler for ApplicationImpl {
         self.menu = menu;
         self.sync_menu();
     }
+
+    #[inline]
+    fn add_window(&mut self, window: Window) { self.windows.insert(window.id(), window); }
+
+    #[inline]
+    fn get_window(&self, id: &WindowId) -> Option<&Window> { self.windows.get(id) }
+
+    #[inline]
+    fn get_window_mut(&mut self, id: &WindowId) -> Option<&mut Window> { self.windows.get_mut(id) }
 }
 
 fn setup_control_flow_observers(panic_info: Weak<PanicInfo>) {

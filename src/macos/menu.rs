@@ -3,7 +3,7 @@ use objc2_app_kit::{NSEventModifierFlags, NSMenu, NSMenuItem};
 use objc2_foundation::{MainThreadMarker, NSObject, NSObjectProtocol, NSString};
 
 use crate::{
-    macos::delegate::AppDelegate,
+    macos::app_delegate::AppDelegate,
     platform::{MenuHandler, MenuItemHandler},
     Action,
     Application,
@@ -65,7 +65,6 @@ impl ActionHandler {
 #[derive(Debug)]
 pub(crate) struct MenuItemImpl {
     pub(super) mtm:        MainThreadMarker,
-    pub(crate) title:      String,
     pub(super) action:     Option<Id<ActionHandler>>,
     pub(crate) short_code: ShortCode,
     pub(super) native:     Id<NSMenuItem>,
@@ -74,10 +73,9 @@ pub(crate) struct MenuItemImpl {
 
 impl MenuItemImpl {
     pub(crate) fn new(app: &Application, separator: bool) -> Self {
-        let mtm = app.application_impl.mtm;
+        let mtm = app.0.mtm;
         Self {
             mtm,
-            title: "".to_owned(),
             action: None,
             native: if separator {
                 NSMenuItem::separatorItem(mtm)
@@ -150,13 +148,13 @@ impl MenuItemHandler for MenuItemImpl {
     where
         S: Into<String>,
     {
-        self.title = title.into();
-        let title = NSString::from_str(&self.title);
+        let title = title.into();
+        let title = NSString::from_str(&title);
         unsafe { self.native.setTitle(&title) };
     }
 
     #[inline]
-    fn title(&self) -> &String { &self.title }
+    fn title(&self) -> String { unsafe { self.native.title().to_string() } }
 
     #[inline]
     fn set_action(&mut self, action: Option<Action>) {
@@ -209,7 +207,7 @@ pub(crate) struct MenuImpl {
 
 impl MenuImpl {
     pub(crate) fn new(app: &Application, items: Vec<MenuItem>) -> Self {
-        let native = NSMenu::new(app.application_impl.mtm);
+        let native = NSMenu::new(app.0.mtm);
 
         unsafe { native.setAutoenablesItems(false) };
 
