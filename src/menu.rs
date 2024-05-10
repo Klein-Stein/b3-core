@@ -4,6 +4,23 @@ use crate::{
     Application,
 };
 
+#[derive(Debug)]
+pub enum Action {
+    Event(String),
+    Callback(fn()),
+}
+
+impl Action {
+    pub fn new_event<S>(name: S) -> Self
+    where
+        S: Into<String>,
+    {
+        Self::Event(name.into())
+    }
+
+    pub fn new_callback(callback: fn()) -> Self { Self::Callback(callback) }
+}
+
 #[derive(Debug, Default)]
 pub struct ShortCode {
     pub(crate) macos: Option<String>,
@@ -44,7 +61,7 @@ impl MenuItem {
 
     fn title(&self) -> &String { self.menu_item_impl.title() }
 
-    fn set_action(&mut self, action: Option<fn()>) { self.menu_item_impl.set_action(action); }
+    fn set_action(&mut self, action: Option<Action>) { self.menu_item_impl.set_action(action); }
 
     fn set_submenu(&mut self, submenu: Option<Menu>) { self.menu_item_impl.set_submenu(submenu); }
 
@@ -62,7 +79,7 @@ impl MenuItem {
 #[derive(Debug)]
 pub struct MenuItemBuilder {
     title:      Option<String>,
-    action:     Option<fn()>,
+    action:     Option<Action>,
     submenu:    Option<Menu>,
     short_code: ShortCode,
     enabled:    Option<bool>,
@@ -87,7 +104,7 @@ impl MenuItemBuilder {
         self
     }
 
-    pub fn with_action(mut self, action: fn()) -> MenuItemBuilder {
+    pub fn with_action(mut self, action: Action) -> MenuItemBuilder {
         self.action = Some(action);
         self
     }

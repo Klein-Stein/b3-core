@@ -6,13 +6,8 @@ pub enum LifeCycleEvent {
 }
 
 #[derive(Debug)]
-pub enum MenuEvent {
-    MenuItemClick,
-}
-
-#[derive(Debug)]
 pub enum Event {
-    Menu(MenuEvent),
+    Menu(String),
     LifeCycle(LifeCycleEvent),
 }
 

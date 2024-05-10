@@ -3,8 +3,11 @@ use objc2_app_kit::{NSEventModifierFlags, NSMenu, NSMenuItem};
 use objc2_foundation::{MainThreadMarker, NSObject, NSObjectProtocol, NSString};
 
 use crate::{
+    macos::delegate::AppDelegate,
     platform::{MenuHandler, MenuItemHandler},
+    Action,
     Application,
+    Event,
     Menu,
     MenuItem,
     ShortCode,
@@ -13,7 +16,7 @@ use crate::{
 #[derive(Debug)]
 #[allow(unused)]
 pub(super) struct ActionHandlerIvars {
-    action: fn(),
+    action: Action,
 }
 
 declare_class!(
@@ -37,7 +40,13 @@ declare_class!(
     unsafe impl ActionHandler {
         #[method(callback)]
         fn __callback(&self) {
-            (self.ivars().action)();
+            match &self.ivars().action {
+                Action::Event(name) => {
+                    let delegate = AppDelegate::get(MainThreadMarker::new().unwrap());
+                    delegate.handle_event(Event::Menu(name.clone()));
+                },
+                Action::Callback(callback) => callback(),
+            }
         }
     }
 
@@ -45,7 +54,7 @@ declare_class!(
 );
 
 impl ActionHandler {
-    pub(super) fn new(mtm: MainThreadMarker, action: fn()) -> Id<Self> {
+    pub(super) fn new(mtm: MainThreadMarker, action: Action) -> Id<Self> {
         let this = mtm.alloc();
         let this = this.set_ivars(ActionHandlerIvars {
             action,
@@ -151,7 +160,7 @@ impl MenuItemHandler for MenuItemImpl {
     fn title(&self) -> &String { &self.title }
 
     #[inline]
-    fn set_action(&mut self, action: Option<fn()>) {
+    fn set_action(&mut self, action: Option<Action>) {
         if let Some(action) = action {
             let action = ActionHandler::new(self.mtm, action);
             unsafe { self.native.setTarget(Some(&action)) };

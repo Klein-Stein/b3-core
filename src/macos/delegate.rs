@@ -130,7 +130,7 @@ impl AppDelegate {
         }
     }
 
-    fn handle_event(&self, event: Event) { self.ivars().handler.on_event(event); }
+    pub(super) fn handle_event(&self, event: Event) { self.ivars().handler.on_event(event); }
 
     // Called by RunLoopObserver after finishing waiting for new events
     pub fn wakeup(&self, panic_info: Weak<PanicInfo>) {}
