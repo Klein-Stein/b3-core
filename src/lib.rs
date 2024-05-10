@@ -1,3 +1,7 @@
+//! This module contains all public exports of the b3-platform crate.
+
+#![warn(missing_docs)]
+
 mod application;
 mod events;
 mod macos;

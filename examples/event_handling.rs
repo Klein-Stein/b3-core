@@ -1,4 +1,4 @@
-use b3_platform::{Action, Application, Event, LifeCycleEvent, Menu, MenuItem};
+use b3_platform::{Action, Application, Event, LifeCycle, Menu, MenuItem};
 
 fn create_menu(app: &Application) -> Menu {
     let quit_menu_item = MenuItem::builder()
@@ -22,8 +22,8 @@ fn main() {
     app.run(|event: Event| match event {
         Event::Menu(action_name) => println!("The {:?} menu item clicked!", action_name),
         Event::LifeCycle(lc_event) => match lc_event {
-            LifeCycleEvent::Start => println!("Applicaiton started!"),
-            LifeCycleEvent::Finish => println!("Application finished!"),
+            LifeCycle::Start => println!("Applicaiton started!"),
+            LifeCycle::Finish => println!("Application finished!"),
             _ => {}
         },
     });

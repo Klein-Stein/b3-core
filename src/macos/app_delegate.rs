@@ -9,7 +9,7 @@ use objc2_app_kit::{NSApplication, NSApplicationActivationPolicy, NSApplicationD
 use objc2_foundation::{MainThreadMarker, NSNotification, NSObject, NSObjectProtocol};
 
 use super::runloop::PanicInfo;
-use crate::{macos::runloop::stop_app_immediately, Event, EventHandler, LifeCycleEvent};
+use crate::{macos::runloop::stop_app_immediately, Event, EventHandler, LifeCycle};
 
 #[derive(Debug)]
 pub(super) struct ActivationPolicy(NSApplicationActivationPolicy);
@@ -41,6 +41,7 @@ impl Debug for Ivars {
 }
 
 declare_class!(
+    #[derive(Debug)]
     pub(super) struct AppDelegate;
 
     // SAFETY:
@@ -75,7 +76,7 @@ declare_class!(
 
             self.invalidate_menu(&app);
 
-            self.handle_event(Event::LifeCycle(LifeCycleEvent::Start));
+            self.handle_event(Event::LifeCycle(LifeCycle::Start));
 
             // If the application is being launched via `EventLoop::pump_app_events()` then we'll
             // want to stop the app once it is launched (and return to the external loop)
@@ -95,7 +96,7 @@ declare_class!(
 
         #[method(applicationWillTerminate:)]
         fn will_terminate(&self, _notification: &NSNotification) {
-            self.handle_event(Event::LifeCycle(LifeCycleEvent::Finish));
+            self.handle_event(Event::LifeCycle(LifeCycle::Finish));
         }
     }
 );

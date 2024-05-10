@@ -1,4 +1,4 @@
-use b3_platform::{Action, Application, Event, LifeCycleEvent, Menu, MenuItem, Window};
+use b3_platform::{Action, Application, Event, LifeCycle, Menu, MenuItem, Window};
 
 fn create_menu(app: &Application) -> Menu {
     let quit_menu_item = MenuItem::builder()
@@ -26,7 +26,7 @@ fn main() {
     app.add_window(window);
 
     app.run(|event: Event| match event {
-        Event::LifeCycle(LifeCycleEvent::Start) => {}
+        Event::LifeCycle(LifeCycle::Start) => {}
         _ => {}
     })
 }

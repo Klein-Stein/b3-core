@@ -25,6 +25,7 @@ use super::{
 };
 use crate::{platform::ApplicationHandler, EventHandler, Menu, Window, WindowId};
 
+#[derive(Debug)]
 pub(crate) struct ApplicationImpl {
     pub(super) mtm:      MainThreadMarker,
     pub(super) delegate: Option<Id<AppDelegate>>,
