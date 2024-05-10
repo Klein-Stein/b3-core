@@ -18,7 +18,6 @@ impl Default for ActivationPolicy {
     fn default() -> Self { Self(NSApplicationActivationPolicy::Regular) }
 }
 
-#[allow(unused)]
 pub(super) struct Ivars {
     activation_policy: ActivationPolicy,
     activate_ignoring_other_apps: bool,
@@ -133,10 +132,10 @@ impl AppDelegate {
     pub(super) fn handle_event(&self, event: Event) { self.ivars().handler.on_event(event); }
 
     // Called by RunLoopObserver after finishing waiting for new events
-    pub fn wakeup(&self, panic_info: Weak<PanicInfo>) {}
+    pub fn wakeup(&self, _panic_info: Weak<PanicInfo>) {}
 
     // Called by RunLoopObserver before waiting for new events
-    pub fn cleared(&self, panic_info: Weak<PanicInfo>) {}
+    pub fn cleared(&self, _panic_info: Weak<PanicInfo>) {}
 
     #[inline]
     pub(super) fn set_menu(&self, menu: Option<Id<NSMenu>>) {

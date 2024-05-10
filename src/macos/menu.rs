@@ -14,7 +14,6 @@ use crate::{
 };
 
 #[derive(Debug)]
-#[allow(unused)]
 pub(super) struct ActionHandlerIvars {
     action: Action,
 }

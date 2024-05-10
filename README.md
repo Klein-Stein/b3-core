@@ -5,7 +5,7 @@ Cross-platform GUI framework
 ## Roadmap
 
 - [x] **macOS:** Application menu support
-- [ ] **macOS:** Support of system events
+- [x] **macOS:** Support of system events
 - [ ] **macOS:** Support of windows
 - [ ] **macOS:** Support of modal windows
 - [ ] **macOS:** Support of notifications
