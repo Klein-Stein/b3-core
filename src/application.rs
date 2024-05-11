@@ -22,6 +22,8 @@ impl Application {
     /// # Examples:
     ///
     /// ```rust
+    /// use b3_platform::Application;
+    ///
     /// let app = Application::new();
     /// ```
     pub fn new() -> Self { Self(ApplicationImpl::new()) }
@@ -59,14 +61,5 @@ impl Application {
     ///
     /// # Parameters:
     /// * `handler` - Event handler.
-    ///
-    /// # Examples:
-    ///
-    /// ```rust
-    /// let app = Application::new();
-    /// app.run(|event: Event| {
-    ///     // handle events here
-    /// });
-    /// ```
     pub fn run(mut self, handler: impl EventHandler + 'static) { self.0.run(handler); }
 }
