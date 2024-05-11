@@ -1,6 +1,8 @@
+use std::{cell::RefCell, fmt::Debug};
+
 use objc2::{declare_class, msg_send_id, mutability, rc::Id, sel, ClassType, DeclaredClass};
 use objc2_app_kit::{NSEventModifierFlags, NSMenu, NSMenuItem};
-use objc2_foundation::{MainThreadMarker, NSObject, NSObjectProtocol, NSString};
+use objc2_foundation::{MainThreadMarker, NSObjectProtocol, NSString};
 
 use crate::{
     macos::app_delegate::AppDelegate,
@@ -13,80 +15,78 @@ use crate::{
     ShortCode,
 };
 
-#[derive(Debug)]
-pub(super) struct ActionHandlerIvars {
-    action: Action,
+#[derive(Debug, Default)]
+pub(super) struct Ivars {
+    action: RefCell<Option<Action>>,
 }
 
 declare_class!(
     #[derive(Debug)]
-    pub(super) struct ActionHandler;
+    pub(super) struct CocoaMenuItem;
 
     // SAFETY:
     // - The superclass NSObject does not have any subclassing requirements.
     // - Main thread only mutability is correct, since this is an application delegate.
     // - `AppDelegate` does not implement `Drop`.
-    unsafe impl ClassType for ActionHandler {
-        type Super = NSObject;
+    unsafe impl ClassType for CocoaMenuItem {
+        type Super = NSMenuItem;
         type Mutability = mutability::MainThreadOnly;
-        const NAME: &'static str = "B3ActionHandler";
+        const NAME: &'static str = "CocoaMenuItem";
     }
 
-    impl DeclaredClass for ActionHandler {
-        type Ivars = ActionHandlerIvars;
+    impl DeclaredClass for CocoaMenuItem {
+        type Ivars = Ivars;
     }
 
-    unsafe impl ActionHandler {
+    unsafe impl CocoaMenuItem {
         #[method(callback)]
         fn __callback(&self) {
-            match &self.ivars().action {
-                Action::Event(name) => {
-                    let delegate = AppDelegate::get(MainThreadMarker::new().unwrap());
-                    delegate.handle_event(Event::Menu(name.clone()));
-                },
-                Action::Callback(callback) => callback(),
+            let action = self.ivars().action.borrow();
+            if let Some(action) = &*action {
+                match action {
+                    Action::Event(name) => {
+                        let delegate = AppDelegate::get(MainThreadMarker::new().unwrap());
+                        delegate.handle_event(Event::Menu(name.clone()));
+                    },
+                    Action::Callback(callback) => callback(),
+                }
             }
         }
     }
 
-    unsafe impl NSObjectProtocol for ActionHandler {}
+    unsafe impl NSObjectProtocol for CocoaMenuItem {}
 );
 
-impl ActionHandler {
-    pub(super) fn new(mtm: MainThreadMarker, action: Action) -> Id<Self> {
+impl CocoaMenuItem {
+    fn new(mtm: MainThreadMarker) -> Id<Self> {
         let this = mtm.alloc();
-        let this = this.set_ivars(ActionHandlerIvars {
-            action,
+        let this = this.set_ivars(Ivars {
+            action: RefCell::new(None),
         });
+
         unsafe { msg_send_id![super(this), init] }
+    }
+
+    fn set_action(&self, action: Option<Action>) {
+        if action.is_some() {
+            unsafe { self.setTarget(Some(&self)) };
+            unsafe { self.setAction(Some(sel!(callback))) };
+        } else {
+            unsafe { self.setTarget(None) };
+            unsafe { self.setAction(None) };
+        }
+        *self.ivars().action.borrow_mut() = action;
     }
 }
 
 #[derive(Debug)]
 pub(crate) struct MenuItemImpl {
-    pub(super) mtm:        MainThreadMarker,
-    pub(super) action:     Option<Id<ActionHandler>>,
     pub(crate) short_code: ShortCode,
-    pub(super) native:     Id<NSMenuItem>,
+    pub(super) native:     Id<CocoaMenuItem>,
     pub(super) submenu:    Option<Menu>,
 }
 
 impl MenuItemImpl {
-    pub(crate) fn new(app: &Application, separator: bool) -> Self {
-        let mtm = app.0.mtm;
-        Self {
-            mtm,
-            action: None,
-            native: if separator {
-                NSMenuItem::separatorItem(mtm)
-            } else {
-                NSMenuItem::new(mtm)
-            },
-            submenu: None,
-            short_code: Default::default(),
-        }
-    }
-
     fn parse_short_code(&self, code: &String) {
         let parts = code.split("+").collect::<Vec<&str>>();
         let mut masks = Vec::new();
@@ -144,6 +144,21 @@ impl MenuItemImpl {
 
 impl MenuItemHandler for MenuItemImpl {
     #[inline]
+    fn new(app: &Application, separator: bool) -> Self {
+        let mtm = app.0.mtm;
+        let native = if separator {
+            unsafe { msg_send_id![CocoaMenuItem::class(), separatorItem] }
+        } else {
+            CocoaMenuItem::new(mtm)
+        };
+        Self {
+            native,
+            submenu: None,
+            short_code: Default::default(),
+        }
+    }
+
+    #[inline]
     fn set_title<S>(&mut self, title: S)
     where
         S: Into<String>,
@@ -157,18 +172,7 @@ impl MenuItemHandler for MenuItemImpl {
     fn title(&self) -> String { unsafe { self.native.title().to_string() } }
 
     #[inline]
-    fn set_action(&mut self, action: Option<Action>) {
-        if let Some(action) = action {
-            let action = ActionHandler::new(self.mtm, action);
-            unsafe { self.native.setTarget(Some(&action)) };
-            unsafe { self.native.setAction(Some(sel!(callback))) };
-            self.action = Some(action);
-        } else {
-            unsafe { self.native.setTarget(None) };
-            unsafe { self.native.setAction(None) };
-            self.action = None;
-        }
-    }
+    fn set_action(&mut self, action: Option<Action>) { self.native.set_action(action); }
 
     #[inline]
     fn set_submenu(&mut self, submenu: Option<Menu>) {

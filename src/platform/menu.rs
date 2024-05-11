@@ -1,6 +1,8 @@
-use crate::{Action, Menu, MenuItem, ShortCode};
+use crate::{Action, Application, Menu, MenuItem, ShortCode};
 
 pub(crate) trait MenuItemHandler {
+    fn new(app: &Application, separator: bool) -> Self;
+
     fn set_title<S>(&mut self, title: S)
     where
         S: Into<String>;
