@@ -3,17 +3,17 @@ use objc2::{
     runtime::ProtocolObject,
 };
 use objc2_app_kit::{NSBackingStoreType, NSWindow, NSWindowStyleMask};
-use objc2_foundation::{CGFloat, CGPoint, CGSize, NSRect, NSString};
+use objc2_foundation::{CGFloat, CGPoint, CGSize, MainThreadMarker, NSRect, NSString};
 
 use super::window_delegate::WindowDelegate;
-use crate::{platform::WindowHandler, Application, Size};
+use crate::{platform::WindowApi, Size};
 
 #[derive(Debug)]
 pub(crate) struct WindowImpl(pub(super) Id<NSWindow>);
 
 impl WindowImpl {
     #[inline]
-    pub(crate) fn new(app: &Application, size: Size) -> Self {
+    pub(crate) fn new(size: Size) -> Self {
         let style = NSWindowStyleMask(
             NSWindowStyleMask::Titled.0
                 | NSWindowStyleMask::Resizable.0
@@ -26,7 +26,9 @@ impl WindowImpl {
             CGSize::new(size.width as CGFloat, size.height as CGFloat),
         );
 
-        let this = app.0.mtm.alloc();
+        let mtm: MainThreadMarker = MainThreadMarker::new()
+            .expect("on macOS, `WindowImpl` instance must be created on the main thread!");
+        let this = mtm.alloc();
         let native = unsafe {
             NSWindow::initWithContentRect_styleMask_backing_defer(
                 this,
@@ -37,7 +39,7 @@ impl WindowImpl {
             )
         };
 
-        let delegate = WindowDelegate::new(app.0.mtm);
+        let delegate = WindowDelegate::new(mtm);
         autoreleasepool(|_| {
             let object = ProtocolObject::from_ref(&*delegate);
             native.setDelegate(Some(object));
@@ -47,7 +49,7 @@ impl WindowImpl {
     }
 }
 
-impl WindowHandler for WindowImpl {
+impl WindowApi for WindowImpl {
     #[inline]
     fn set_title(&mut self, title: String) {
         let title = NSString::from_str(&title);

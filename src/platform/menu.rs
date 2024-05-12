@@ -1,7 +1,7 @@
-use crate::{Action, Application, Menu, MenuItem, ShortCode};
+use crate::{Action, Menu, MenuItem, ShortCode};
 
-pub(crate) trait MenuItemHandler {
-    fn new(app: &Application, separator: bool) -> Self;
+pub(crate) trait MenuItemApi {
+    fn new(separator: bool) -> Self;
 
     fn set_title<S>(&mut self, title: S)
     where
@@ -19,6 +19,6 @@ pub(crate) trait MenuItemHandler {
     fn enabled(&self) -> bool;
 }
 
-pub(crate) trait MenuHandler {
+pub(crate) trait MenuApi {
     fn add_item(&mut self, item: MenuItem);
 }

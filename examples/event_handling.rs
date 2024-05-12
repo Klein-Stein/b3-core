@@ -1,30 +1,31 @@
-use b3_platform::{Action, Application, Event, LifeCycle, Menu, MenuItem};
+use b3_platform::{Action, ActiveApplication, Application, Event, LifeCycle, Menu, MenuItem};
 
-fn create_menu(app: &Application) -> Menu {
+fn create_menu() -> Menu {
     let quit_menu_item = MenuItem::builder()
         .with_title("Quit")
         .with_action(Action::new_event("quit"))
         .with_macos_short_code("q")
-        .build(app);
-    let app_menu = Menu::builder().with_item(quit_menu_item).build(app);
+        .build();
+    let app_menu = Menu::builder().with_item(quit_menu_item).build();
 
     let app_menu_item = MenuItem::builder()
         .with_title("Bioma")
         .with_submenu(app_menu)
-        .build(app);
-    Menu::builder().with_item(app_menu_item).build(app)
+        .build();
+    Menu::builder().with_item(app_menu_item).build()
 }
 
 fn main() {
-    let mut app = Application::new();
-    let menu = create_menu(&app);
-    app.set_menu(Some(menu));
-    app.run(|event: Event| match event {
+    let app = Application::new();
+    app.run(|app: &mut ActiveApplication, event: Event| match event {
         Event::Menu(action_name) => println!("The {:?} menu item clicked!", action_name),
         Event::LifeCycle(lc_event) => match lc_event {
-            LifeCycle::Start => println!("Applicaiton started!"),
+            LifeCycle::Start => {
+                println!("Applicaiton started!");
+                let menu = create_menu();
+                app.set_menu(Some(&menu));
+            }
             LifeCycle::Finish => println!("Application finished!"),
-            _ => {}
         },
     });
 }

@@ -1,13 +1,28 @@
 //! This module contains a platform independent Application implementation.
 
 use crate::{
-    macos::ApplicationImpl,
-    platform::ApplicationHandler,
+    macos::{ActiveApplicationImpl, ApplicationImpl},
+    platform::{ActiveApplicationApi, ApplicationApi},
     EventHandler,
     Menu,
-    Window,
-    WindowId,
 };
+
+/// This structure represents a platform independent running application.
+#[derive(Debug)]
+pub struct ActiveApplication(pub(crate) ActiveApplicationImpl);
+
+impl ActiveApplication {
+    pub(crate) fn new() -> Self { Self(ActiveApplicationImpl::new()) }
+
+    /// Sets an application menu.
+    ///
+    /// # Parameters:
+    /// * `menu` - Application menu.
+    pub fn set_menu(&mut self, menu: Option<&Menu>) { self.0.set_menu(menu); }
+
+    /// Stops a running applicaiton.
+    pub fn stop(&mut self) { self.0.stop(); }
+}
 
 /// The main entity that provides entrypoints to the event loop and other API.
 ///
@@ -27,35 +42,6 @@ impl Application {
     /// let app = Application::new();
     /// ```
     pub fn new() -> Self { Self(ApplicationImpl::new()) }
-
-    /// Sets an application menu.
-    ///
-    /// The applicaiton menu will only be displayed if the target system
-    /// supports this kind of menu.
-    ///
-    /// # Parameters:
-    /// * `menu` - Application menu (optional).
-    pub fn set_menu(&mut self, menu: Option<Menu>) { self.0.set_menu(menu); }
-
-    /// Registers a new window in the applicaiton.
-    ///
-    /// # Parameters:
-    /// * `window` - [Window].
-    pub fn add_window(&mut self, window: Window) { self.0.add_window(window); }
-
-    /// Returns a registered window by [WindowId] or `None`.
-    ///
-    /// # Parameters:
-    /// * `id` - [WindowId].
-    pub fn get_window(&self, id: &WindowId) -> Option<&Window> { self.0.get_window(id) }
-
-    /// Returns a mutable registered window by [WindowId] or `None`.
-    ///
-    /// # Parameters:
-    /// * `id` - [WindowId].
-    pub fn get_window_mut(&mut self, id: &WindowId) -> Option<&mut Window> {
-        self.0.get_window_mut(id)
-    }
 
     /// Runs an application (event loop).
     ///

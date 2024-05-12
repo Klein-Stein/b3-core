@@ -2,8 +2,7 @@
 
 use crate::{
     macos::{MenuImpl, MenuItemImpl},
-    platform::MenuItemHandler,
-    Application,
+    platform::MenuItemApi,
 };
 
 /// Menu item action.
@@ -61,19 +60,16 @@ impl MenuItem {
     /// Returns a new builder instance.
     pub fn builder() -> MenuItemBuilder { MenuItemBuilder::new() }
 
-    fn new(app: &Application) -> Self {
+    fn new() -> Self {
         Self {
-            menu_item_impl: MenuItemImpl::new(app, false),
+            menu_item_impl: MenuItemImpl::new(false),
         }
     }
 
     /// Creates a new menu separator.
-    ///
-    /// # Parameters:
-    /// * `app` - Current application.
-    pub fn separator(app: &Application) -> Self {
+    pub fn separator() -> Self {
         Self {
-            menu_item_impl: MenuItemImpl::new(app, true),
+            menu_item_impl: MenuItemImpl::new(true),
         }
     }
 }
@@ -201,11 +197,8 @@ impl MenuItemBuilder {
     }
 
     /// Build a new menu item with specified options.
-    ///
-    /// # Parameters:
-    /// * `app` - Current application.
-    pub fn build(self, app: &Application) -> MenuItem {
-        let mut item = MenuItem::new(app);
+    pub fn build(self) -> MenuItem {
+        let mut item = MenuItem::new();
 
         if let Some(title) = self.title {
             item.set_title(title);
@@ -233,9 +226,9 @@ impl Menu {
     /// Returns a new builder instance.
     pub fn builder() -> MenuBuilder { MenuBuilder::new() }
 
-    fn new(app: &Application, items: Vec<MenuItem>) -> Self {
+    fn new(items: Vec<MenuItem>) -> Self {
         Self {
-            menu_impl: MenuImpl::new(app, items),
+            menu_impl: MenuImpl::new(items),
         }
     }
 }
@@ -264,8 +257,5 @@ impl MenuBuilder {
     }
 
     /// Build a new menu with registered items.
-    ///
-    /// # Parameters:
-    /// * `app` - Current application.
-    pub fn build(self, app: &Application) -> Menu { Menu::new(app, self.items) }
+    pub fn build(self) -> Menu { Menu::new(self.items) }
 }

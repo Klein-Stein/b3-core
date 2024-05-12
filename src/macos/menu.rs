@@ -6,9 +6,8 @@ use objc2_foundation::{MainThreadMarker, NSObjectProtocol, NSString};
 
 use crate::{
     macos::app_delegate::AppDelegate,
-    platform::{MenuHandler, MenuItemHandler},
+    platform::{MenuApi, MenuItemApi},
     Action,
-    Application,
     Event,
     Menu,
     MenuItem,
@@ -142,10 +141,11 @@ impl MenuItemImpl {
     }
 }
 
-impl MenuItemHandler for MenuItemImpl {
+impl MenuItemApi for MenuItemImpl {
     #[inline]
-    fn new(app: &Application, separator: bool) -> Self {
-        let mtm = app.0.mtm;
+    fn new(separator: bool) -> Self {
+        let mtm: MainThreadMarker = MainThreadMarker::new()
+            .expect("on macOS, `MenuItemImpl` instance must be created on the main thread!");
         let native = if separator {
             unsafe { msg_send_id![CocoaMenuItem::class(), separatorItem] }
         } else {
@@ -210,8 +210,11 @@ pub(crate) struct MenuImpl {
 }
 
 impl MenuImpl {
-    pub(crate) fn new(app: &Application, items: Vec<MenuItem>) -> Self {
-        let native = NSMenu::new(app.0.mtm);
+    pub(crate) fn new(items: Vec<MenuItem>) -> Self {
+        let mtm: MainThreadMarker = MainThreadMarker::new()
+            .expect("on macOS, `MenuImpl` instance must be created on the main thread!");
+
+        let native = NSMenu::new(mtm);
 
         unsafe { native.setAutoenablesItems(false) };
 
@@ -226,7 +229,7 @@ impl MenuImpl {
     }
 }
 
-impl MenuHandler for MenuImpl {
+impl MenuApi for MenuImpl {
     #[inline]
     fn add_item(&mut self, item: MenuItem) {
         self.native.addItem(&item.menu_item_impl.native);

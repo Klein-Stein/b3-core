@@ -1,5 +1,7 @@
 //! This module contains all event that can be captured.
 
+use crate::ActiveApplication;
+
 /// Life cycle events.
 #[derive(Debug)]
 pub enum LifeCycle {
@@ -29,13 +31,14 @@ pub trait EventHandler {
     /// Override this method to capture events.
     ///
     /// # Parameters:
+    /// * `app` - Active application.
     /// * `event` - [Event].
-    fn on_event(&self, event: Event);
+    fn on_event(&mut self, app: &mut ActiveApplication, event: Event);
 }
 
 impl<F> EventHandler for F
 where
-    F: Fn(Event),
+    F: FnMut(&mut ActiveApplication, Event),
 {
-    fn on_event(&self, event: Event) { self(event); }
+    fn on_event(&mut self, app: &mut ActiveApplication, event: Event) { self(app, event); }
 }

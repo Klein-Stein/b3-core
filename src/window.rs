@@ -1,4 +1,4 @@
-use crate::{macos::WindowImpl, platform::WindowHandler, Application};
+use crate::{macos::WindowImpl, platform::WindowApi};
 
 const DEFAULT_WIDTH: usize = 800;
 const DEFAULT_HEIGHT: usize = 600;
@@ -50,10 +50,9 @@ impl Window {
     /// Returns a new builder instance.
     pub fn builder() -> WindowBuilder { WindowBuilder::new() }
 
-    #[inline]
-    fn new(app: &Application, size: Size) -> Self {
+    fn new(size: Size) -> Self {
         Self {
-            window_impl: WindowImpl::new(app, size),
+            window_impl: WindowImpl::new(size),
         }
     }
 
@@ -115,11 +114,8 @@ impl WindowBuilder {
     }
 
     /// Builds a new window instance with passed parameters.
-    ///
-    /// # Parameters:
-    /// * `app` - Current application.
-    pub fn build(self, app: &Application) -> Window {
-        let mut window = Window::new(app, self.size);
+    pub fn build(self) -> Window {
+        let mut window = Window::new(self.size);
 
         if let Some(title) = self.title {
             window.set_title(title);

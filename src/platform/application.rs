@@ -1,11 +1,12 @@
-use crate::{EventHandler, Menu, Window, WindowId};
+use crate::{EventHandler, Menu};
 
-pub(crate) trait ApplicationHandler {
-    fn set_menu(&mut self, menu: Option<Menu>);
+pub trait ActiveApplicationApi {
+    fn set_menu(&mut self, menu: Option<&Menu>);
 
-    fn add_window(&mut self, window: Window);
-    fn get_window(&self, id: &WindowId) -> Option<&Window>;
-    fn get_window_mut(&mut self, id: &WindowId) -> Option<&mut Window>;
+    fn stop(&mut self);
+}
 
+pub(crate) trait ApplicationApi {
+    fn new() -> Self;
     fn run(&mut self, handler: impl EventHandler + 'static);
 }

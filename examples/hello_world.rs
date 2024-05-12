@@ -1,6 +1,6 @@
-use b3_platform::{Application, Event};
+use b3_platform::{ActiveApplication, Application, Event};
 
 fn main() {
     let app = Application::new();
-    app.run(|event: Event| println!("{:?}", event));
+    app.run(|app: &mut ActiveApplication, event: Event| println!("{:?}", event));
 }
