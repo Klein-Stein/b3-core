@@ -37,23 +37,36 @@ impl Default for Size {
     }
 }
 
+/// Window options.
+#[derive(Debug, Default, PartialEq, Eq, Hash)]
+pub struct WindowOptions {
+    /// Turn on/off a window title.
+    pub titled:      bool,
+    /// Allow a window to be minimized.
+    pub minimizable: bool,
+    /// Allow a window to be closed.
+    pub closable:    bool,
+    /// Allow a window to be resized.
+    pub resizable:   bool,
+    /// Allow a window to be switched to a fullscreen mode.
+    pub fullscreen:  bool,
+    /// Show/hide a window borders.
+    pub borderless:  bool,
+}
+
 /// Window ID.
 pub type WindowId = usize;
 
 /// Applcation window.
 #[derive(Debug)]
-pub struct Window {
-    window_impl: WindowImpl,
-}
+pub struct Window(WindowImpl);
 
 impl Window {
     /// Returns a new builder instance.
     pub fn builder() -> WindowBuilder { WindowBuilder::new() }
 
-    fn new(size: Size) -> Self {
-        Self {
-            window_impl: WindowImpl::new(size),
-        }
+    fn new(options: Option<WindowOptions>, size: Size) -> Self {
+        Self(WindowImpl::new(options, size))
     }
 
     /// Sets a window title.
@@ -64,23 +77,33 @@ impl Window {
     where
         S: Into<String>,
     {
-        self.window_impl.set_title(title.into());
+        self.0.set_title(title.into());
     }
 
     /// Returns a window title.
-    pub fn title(&self) -> String { self.window_impl.title() }
+    pub fn title(&self) -> String { self.0.title() }
 
     /// Returns a window ID.
     pub fn id(&self) -> WindowId { self as *const Self as WindowId }
 
+    /// Sets window options.
+    ///
+    /// # Parameters:
+    /// * `options` - Window options.
+    pub fn set_options(&mut self, options: WindowOptions) { self.0.set_options(options); }
+
+    /// Retuns window options.
+    pub fn options(&self) -> WindowOptions { self.0.options() }
+
     /// Makes a window visible.
-    pub fn show(&mut self) { self.window_impl.show(); }
+    pub fn show(&mut self) { self.0.show(); }
 }
 
 /// Window builder.
 #[derive(Default)]
 pub struct WindowBuilder {
     title: Option<String>,
+    flags: Option<WindowOptions>,
     size:  Size,
 }
 
@@ -113,9 +136,18 @@ impl WindowBuilder {
         self
     }
 
+    /// Sets options of the window under building.
+    ///
+    /// # Parameters:
+    /// * `options` - Window options.
+    pub fn with_options(mut self, options: WindowOptions) -> WindowBuilder {
+        self.flags = Some(options);
+        self
+    }
+
     /// Builds a new window instance with passed parameters.
     pub fn build(self) -> Window {
-        let mut window = Window::new(self.size);
+        let mut window = Window::new(self.flags, self.size);
 
         if let Some(title) = self.title {
             window.set_title(title);
