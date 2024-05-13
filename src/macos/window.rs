@@ -4,12 +4,13 @@ use objc2::{
 };
 use objc2_app_kit::{
     NSBackingStoreType,
+    NSFullScreenWindowMask,
     NSWindow,
     NSWindowButton,
     NSWindowStyleMask,
     NSWindowTitleVisibility,
 };
-use objc2_foundation::{CGFloat, CGPoint, CGSize, MainThreadMarker, NSRect, NSString};
+use objc2_foundation::{CGFloat, CGPoint, CGRect, CGSize, MainThreadMarker, NSRect, NSString};
 
 use super::window_delegate::WindowDelegate;
 use crate::{
@@ -17,6 +18,7 @@ use crate::{
     ActiveApplication,
     Event,
     InitMode,
+    Point,
     Size,
     WindowEvent,
     WindowId,
@@ -178,5 +180,38 @@ impl WindowApi for WindowImpl {
         if self.init_mode == InitMode::Fullscreen {
             self.native.toggleFullScreen(None);
         }
+    }
+
+    #[inline]
+    fn toggle_fullscreen(&mut self) { self.native.toggleFullScreen(None); }
+
+    #[inline]
+    fn is_fullscreen(&self) -> bool {
+        (self.native.styleMask().0 & NSFullScreenWindowMask.0) == NSFullScreenWindowMask.0
+    }
+
+    #[inline]
+    fn set_frame_size(&mut self, size: Size) {
+        let origin = self.native.frame().origin;
+        let frame = CGRect::new(origin, CGSize::new(size.width as f64, size.height as f64));
+        unsafe { self.native.setFrame_display_animate(frame, true, false) };
+    }
+
+    #[inline]
+    fn frame_size(&self) -> Size {
+        let raw_size = self.native.frame().size;
+        Size::new(raw_size.width as usize, raw_size.height as usize)
+    }
+
+    #[inline]
+    fn set_position(&mut self, position: crate::Point) {
+        let origin = CGPoint::new(position.x as f64, position.y as f64);
+        unsafe { self.native.setFrameOrigin(origin) };
+    }
+
+    #[inline]
+    fn position(&self) -> crate::Point {
+        let raw_origin = self.native.frame().origin;
+        Point::new(raw_origin.x as i32, raw_origin.y as i32)
     }
 }

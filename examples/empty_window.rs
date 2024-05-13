@@ -8,7 +8,6 @@ use b3_platform::{
     Menu,
     MenuItem,
     Window,
-    WindowEvent,
 };
 
 fn create_menu() -> Menu {
@@ -54,12 +53,6 @@ impl EventHandler for State {
                 app.set_menu(Some(&self.menu));
 
                 self.window.show(app);
-            }
-            Event::Window(WindowEvent::Show, window_id) => {
-                println!("The window has been displayed: {:?}", window_id);
-            }
-            Event::Window(WindowEvent::Close, window_id) => {
-                println!("The window has been closed: {:?}", window_id);
             }
             _ => (),
         }

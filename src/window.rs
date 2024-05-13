@@ -1,41 +1,4 @@
-use crate::{macos::WindowImpl, platform::WindowApi, ActiveApplication};
-
-const DEFAULT_WIDTH: usize = 800;
-const DEFAULT_HEIGHT: usize = 600;
-
-/// Window frame size.
-///
-/// By default this size defines a 800x600 px frame
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Size {
-    /// Window frame width.
-    pub width:  usize,
-    /// Window frame height.
-    pub height: usize,
-}
-
-impl Size {
-    /// Creates a new instance of the window frame size.
-    ///
-    /// # Parameters:
-    /// * `width` - Width.
-    /// * `height` - Height.
-    pub fn new(width: usize, height: usize) -> Self {
-        Self {
-            width,
-            height,
-        }
-    }
-}
-
-impl Default for Size {
-    fn default() -> Self {
-        Self {
-            width:  DEFAULT_WIDTH,
-            height: DEFAULT_HEIGHT,
-        }
-    }
-}
+use crate::{macos::WindowImpl, platform::WindowApi, ActiveApplication, Point, Size};
 
 /// Window options.
 #[derive(Debug, Default, PartialEq, Eq, Clone, Copy)]
@@ -119,6 +82,30 @@ impl Window {
     /// # Parameters:
     /// * `app` - Active application.
     pub fn show(&mut self, app: &ActiveApplication) { self.0.show(app); }
+
+    /// Toggles the fullscreen mode of the window.
+    fn toggle_fullscreen(&mut self) { self.0.toggle_fullscreen(); }
+
+    /// Returns if a window is in the fullscreen mode.
+    fn is_fullscreen(&self) -> bool { self.0.is_fullscreen() }
+
+    /// Sets a new frame size of the window.
+    ///
+    /// # Parameters:
+    /// * `size` - Window frame size.
+    fn set_frame_size(&mut self, size: Size) { self.0.set_frame_size(size); }
+
+    /// Returns a frame size of the window.
+    fn frame_size(&self) -> Size { self.0.frame_size() }
+
+    /// Sets a window origin position.
+    ///
+    /// # Parameters:
+    /// * `position` - Origin position.
+    fn set_position(&mut self, position: Point) { self.0.set_position(position); }
+
+    /// Returns a window origin position.
+    fn position(&self) -> Point { self.0.position() }
 }
 
 /// Window builder.
