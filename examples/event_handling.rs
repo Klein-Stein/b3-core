@@ -27,5 +27,6 @@ fn main() {
             }
             LifeCycle::Finish => println!("Application finished!"),
         },
+        _ => (),
     });
 }

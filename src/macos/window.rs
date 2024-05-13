@@ -12,11 +12,21 @@ use objc2_app_kit::{
 use objc2_foundation::{CGFloat, CGPoint, CGSize, MainThreadMarker, NSRect, NSString};
 
 use super::window_delegate::WindowDelegate;
-use crate::{platform::WindowApi, InitMode, Size, WindowOptions};
+use crate::{
+    platform::WindowApi,
+    ActiveApplication,
+    Event,
+    InitMode,
+    Size,
+    WindowEvent,
+    WindowId,
+    WindowOptions,
+};
 
 #[derive(Debug)]
 pub(crate) struct WindowImpl {
     pub(super) init_mode: InitMode,
+    pub(super) delegate:  Id<WindowDelegate>,
     pub(super) native:    Id<NSWindow>,
 }
 
@@ -80,6 +90,7 @@ impl WindowImpl {
 
         Self {
             init_mode: mode,
+            delegate,
             native,
         }
     }
@@ -106,6 +117,9 @@ impl WindowImpl {
 }
 
 impl WindowApi for WindowImpl {
+    #[inline]
+    fn init(&mut self, window_id: WindowId) { self.delegate.set_window_id(window_id); }
+
     #[inline]
     fn set_title(&mut self, title: String) {
         let title = NSString::from_str(&title);
@@ -152,8 +166,14 @@ impl WindowApi for WindowImpl {
     }
 
     #[inline]
-    fn show(&mut self) {
+    fn show(&mut self, app: &ActiveApplication) {
+        self.delegate.set_app_delegate(app.0.delegate.clone());
+
         self.native.makeKeyAndOrderFront(None);
+
+        let window_id = self.delegate.window_id();
+        self.delegate
+            .handle_event(Event::Window(WindowEvent::Show, window_id));
 
         if self.init_mode == InitMode::Fullscreen {
             self.native.toggleFullScreen(None);

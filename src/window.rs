@@ -1,4 +1,4 @@
-use crate::{macos::WindowImpl, platform::WindowApi};
+use crate::{macos::WindowImpl, platform::WindowApi, ActiveApplication};
 
 const DEFAULT_WIDTH: usize = 800;
 const DEFAULT_HEIGHT: usize = 600;
@@ -83,7 +83,9 @@ impl Window {
     pub fn builder() -> WindowBuilder { WindowBuilder::new() }
 
     fn new(mode: InitMode, options: Option<WindowOptions>, size: Size) -> Self {
-        Self(WindowImpl::new(mode, options, size))
+        let mut window = Self(WindowImpl::new(mode, options, size));
+        window.0.init(window.id());
+        window
     }
 
     /// Sets a window title.
@@ -113,7 +115,10 @@ impl Window {
     pub fn options(&self) -> WindowOptions { self.0.options() }
 
     /// Makes a window visible.
-    pub fn show(&mut self) { self.0.show(); }
+    ///
+    /// # Parameters:
+    /// * `app` - Active application.
+    pub fn show(&mut self, app: &ActiveApplication) { self.0.show(app); }
 }
 
 /// Window builder.

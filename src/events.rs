@@ -1,9 +1,9 @@
 //! This module contains all event that can be captured.
 
-use crate::ActiveApplication;
+use crate::{ActiveApplication, WindowId};
 
 /// Life cycle events.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum LifeCycle {
     /// The application has just been successfully launched.
     Start,
@@ -11,10 +11,19 @@ pub enum LifeCycle {
     Finish,
 }
 
+/// Window events.
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum WindowEvent {
+    /// The window has been displayed.
+    Show,
+    /// The window has been closed.
+    Close,
+}
+
 /// Main event enumeration.
 ///
 /// This enumeration is an entrypoint to all captured events.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Event {
     /// The event indicates that a menu item has been clicked.
     ///
@@ -22,6 +31,8 @@ pub enum Event {
     Menu(String),
     /// Life cycle events (see [LifeCycle]).
     LifeCycle(LifeCycle),
+    /// Window events (see [WindowEvent]).
+    Window(WindowEvent, WindowId),
 }
 
 /// Event handler.

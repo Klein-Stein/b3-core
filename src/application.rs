@@ -12,7 +12,7 @@ use crate::{
 pub struct ActiveApplication(pub(crate) ActiveApplicationImpl);
 
 impl ActiveApplication {
-    pub(crate) fn new() -> Self { Self(ActiveApplicationImpl::new()) }
+    pub(crate) fn new(app_impl: ActiveApplicationImpl) -> Self { Self(app_impl) }
 
     /// Sets an application menu.
     ///
