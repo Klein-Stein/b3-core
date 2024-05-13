@@ -12,14 +12,17 @@ use objc2_app_kit::{
 use objc2_foundation::{CGFloat, CGPoint, CGSize, MainThreadMarker, NSRect, NSString};
 
 use super::window_delegate::WindowDelegate;
-use crate::{platform::WindowApi, Size, WindowOptions};
+use crate::{platform::WindowApi, InitMode, Size, WindowOptions};
 
 #[derive(Debug)]
-pub(crate) struct WindowImpl(pub(super) Id<NSWindow>);
+pub(crate) struct WindowImpl {
+    pub(super) init_mode: InitMode,
+    pub(super) native:    Id<NSWindow>,
+}
 
 impl WindowImpl {
     #[inline]
-    pub(crate) fn new(options: Option<WindowOptions>, size: Size) -> Self {
+    pub(crate) fn new(mode: InitMode, options: Option<WindowOptions>, size: Size) -> Self {
         let style = if let Some(options) = &options {
             Self::to_window_style_mask(&options)
         } else {
@@ -69,7 +72,16 @@ impl WindowImpl {
             }
         }
 
-        Self(native)
+        match mode {
+            InitMode::Minimized => native.miniaturize(None),
+            InitMode::Maximized => native.zoom(None),
+            _ => (),
+        }
+
+        Self {
+            init_mode: mode,
+            native,
+        }
     }
 
     fn to_window_style_mask(options: &WindowOptions) -> NSWindowStyleMask {
@@ -97,28 +109,29 @@ impl WindowApi for WindowImpl {
     #[inline]
     fn set_title(&mut self, title: String) {
         let title = NSString::from_str(&title);
-        self.0.setTitle(&title);
+        self.native.setTitle(&title);
     }
 
     #[inline]
     fn title(&self) -> String {
-        let title = self.0.title();
+        let title = self.native.title();
         title.to_string()
     }
 
     #[inline]
     fn set_options(&mut self, options: WindowOptions) {
         let mask = Self::to_window_style_mask(&options);
-        self.0.setStyleMask(mask);
+        self.native.setStyleMask(mask);
         let title_visibility = if options.borderless {
             NSWindowTitleVisibility::NSWindowTitleHidden
         } else {
             NSWindowTitleVisibility::NSWindowTitleVisible
         };
-        self.0.setTitleVisibility(title_visibility);
-        self.0.setTitlebarAppearsTransparent(options.borderless);
+        self.native.setTitleVisibility(title_visibility);
+        self.native
+            .setTitlebarAppearsTransparent(options.borderless);
         if let Some(button) = self
-            .0
+            .native
             .standardWindowButton(NSWindowButton::NSWindowZoomButton)
         {
             button.setEnabled(options.fullscreen);
@@ -127,7 +140,7 @@ impl WindowApi for WindowImpl {
 
     #[inline]
     fn options(&self) -> WindowOptions {
-        let mask = self.0.styleMask();
+        let mask = self.native.styleMask();
         WindowOptions {
             titled:      (mask.0 & NSWindowStyleMask::Titled.0) != 0,
             minimizable: (mask.0 & NSWindowStyleMask::Miniaturizable.0) != 0,
@@ -139,5 +152,11 @@ impl WindowApi for WindowImpl {
     }
 
     #[inline]
-    fn show(&mut self) { self.0.makeKeyAndOrderFront(None); }
+    fn show(&mut self) {
+        self.native.makeKeyAndOrderFront(None);
+
+        if self.init_mode == InitMode::Fullscreen {
+            self.native.toggleFullScreen(None);
+        }
+    }
 }

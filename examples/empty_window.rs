@@ -8,7 +8,6 @@ use b3_platform::{
     Menu,
     MenuItem,
     Window,
-    WindowOptions,
 };
 
 fn create_menu() -> Menu {
@@ -34,17 +33,7 @@ struct State {
 impl State {
     fn new() -> Self {
         let menu = create_menu();
-        let window = Window::builder()
-            .with_title("B3 Platform")
-            .with_options(WindowOptions {
-                titled:      true,
-                minimizable: true,
-                closable:    true,
-                resizable:   true,
-                fullscreen:  true,
-                borderless:  false,
-            })
-            .build();
+        let window = Window::builder().with_title("B3 Platform").build();
         Self {
             menu,
             window,

@@ -6,7 +6,7 @@ const DEFAULT_HEIGHT: usize = 600;
 /// Window frame size.
 ///
 /// By default this size defines a 800x600 px frame
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Size {
     /// Window frame width.
     pub width:  usize,
@@ -38,7 +38,7 @@ impl Default for Size {
 }
 
 /// Window options.
-#[derive(Debug, Default, PartialEq, Eq, Hash)]
+#[derive(Debug, Default, PartialEq, Eq, Clone, Copy)]
 pub struct WindowOptions {
     /// Turn on/off a window title.
     pub titled:      bool,
@@ -54,6 +54,23 @@ pub struct WindowOptions {
     pub borderless:  bool,
 }
 
+/// Initial mode
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub enum InitMode {
+    /// A regular window with a specified frame size.
+    Default,
+    /// The window will be displayed in minimized mode.
+    Minimized,
+    /// The window will be displayed in maximized mode.
+    Maximized,
+    /// The window will be displayed in fullscreen mode.
+    Fullscreen,
+}
+
+impl Default for InitMode {
+    fn default() -> Self { Self::Default }
+}
+
 /// Window ID.
 pub type WindowId = usize;
 
@@ -65,8 +82,8 @@ impl Window {
     /// Returns a new builder instance.
     pub fn builder() -> WindowBuilder { WindowBuilder::new() }
 
-    fn new(options: Option<WindowOptions>, size: Size) -> Self {
-        Self(WindowImpl::new(options, size))
+    fn new(mode: InitMode, options: Option<WindowOptions>, size: Size) -> Self {
+        Self(WindowImpl::new(mode, options, size))
     }
 
     /// Sets a window title.
@@ -103,6 +120,7 @@ impl Window {
 #[derive(Default)]
 pub struct WindowBuilder {
     title: Option<String>,
+    mode:  InitMode,
     flags: Option<WindowOptions>,
     size:  Size,
 }
@@ -127,6 +145,15 @@ impl WindowBuilder {
         self
     }
 
+    /// Sets an initial mode of the window under building.
+    ///
+    /// # Parameters:
+    /// * `mode` - Initial mode.
+    pub fn with_init_mode(mut self, mode: InitMode) -> WindowBuilder {
+        self.mode = mode;
+        self
+    }
+
     /// Sets a frame size of the window under building.
     ///
     /// # Parameters:
@@ -147,7 +174,7 @@ impl WindowBuilder {
 
     /// Builds a new window instance with passed parameters.
     pub fn build(self) -> Window {
-        let mut window = Window::new(self.flags, self.size);
+        let mut window = Window::new(self.mode, self.flags, self.size);
 
         if let Some(title) = self.title {
             window.set_title(title);
