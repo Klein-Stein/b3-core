@@ -11,6 +11,8 @@ pub struct WindowOptions {
     pub closable:    bool,
     /// Allow a window to be resized.
     pub resizable:   bool,
+    /// Allow a window to be dragged.
+    pub draggable:   bool,
     /// Allow a window to be switched to a fullscreen mode.
     pub fullscreen:  bool,
     /// Show/hide a window borders.
@@ -106,6 +108,48 @@ impl Window {
 
     /// Returns a window origin position.
     fn position(&self) -> Point { self.0.position() }
+
+    /// Sets a minimal size of the window frame.
+    ///
+    /// # Parameters:
+    /// * `min_size` - Minimal window frame size.
+    fn set_min_size(&mut self, min_size: Size) { self.0.set_min_size(min_size); }
+
+    /// Returns a minimal size of the window frame.
+    fn min_size(&self) -> Size { self.0.min_size() }
+
+    /// Sets a maximal size of the window frame.
+    ///
+    /// # Parameters:
+    /// * `max_size` - Maximal window frame size.
+    fn set_max_size(&mut self, max_size: Size) { self.0.set_max_size(max_size); }
+
+    /// Returns a maximal size of the window frame.
+    fn max_size(&self) -> Size { self.0.max_size() }
+
+    /// Switches a window into the maximized mode.
+    fn maximize(&mut self) { self.0.maximize() }
+
+    /// Checks if a window is maximized.
+    fn is_maximized(&self) -> bool { self.0.is_maximized() }
+
+    /// Returns a content size (inner window size).
+    fn content_size(&self) -> Size { self.0.content_size() }
+
+    /// Checks if a window is visible on the screen.
+    fn is_visible(&self) -> bool { self.0.is_visible() }
+
+    /// Closes a window.
+    fn close(&mut self) { self.0.close(); }
+
+    /// Switches a window into the minimized mode.
+    fn minimize(&mut self) { self.0.minimize(); }
+
+    /// Checks if a window is minimized.
+    fn is_minimized(&self) -> bool { self.0.is_minimized() }
+
+    /// De-minimizes window.
+    fn restore(&mut self) { self.0.restore(); }
 }
 
 /// Window builder.

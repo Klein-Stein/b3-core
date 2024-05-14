@@ -82,6 +82,10 @@ impl WindowImpl {
             if let Some(button) = native.standardWindowButton(NSWindowButton::NSWindowZoomButton) {
                 button.setEnabled(options.fullscreen);
             }
+
+            if unsafe { native.isMovable() } != options.draggable {
+                native.setMovable(options.draggable);
+            }
         }
 
         match mode {
@@ -138,19 +142,26 @@ impl WindowApi for WindowImpl {
     fn set_options(&mut self, options: WindowOptions) {
         let mask = Self::to_window_style_mask(&options);
         self.native.setStyleMask(mask);
+
         let title_visibility = if options.borderless {
             NSWindowTitleVisibility::NSWindowTitleHidden
         } else {
             NSWindowTitleVisibility::NSWindowTitleVisible
         };
         self.native.setTitleVisibility(title_visibility);
+
         self.native
             .setTitlebarAppearsTransparent(options.borderless);
+
         if let Some(button) = self
             .native
             .standardWindowButton(NSWindowButton::NSWindowZoomButton)
         {
             button.setEnabled(options.fullscreen);
+        }
+
+        if unsafe { self.native.isMovable() } != options.draggable {
+            self.native.setMovable(options.draggable);
         }
     }
 
@@ -162,6 +173,7 @@ impl WindowApi for WindowImpl {
             minimizable: (mask.0 & NSWindowStyleMask::Miniaturizable.0) != 0,
             closable:    (mask.0 & NSWindowStyleMask::Closable.0) != 0,
             resizable:   (mask.0 & NSWindowStyleMask::Resizable.0) != 0,
+            draggable:   unsafe { self.native.isMovable() },
             fullscreen:  (mask.0 & NSWindowStyleMask::FullScreen.0) != 0,
             borderless:  (mask.0 & NSWindowStyleMask::Borderless.0) != 0,
         }
@@ -213,5 +225,60 @@ impl WindowApi for WindowImpl {
     fn position(&self) -> crate::Point {
         let raw_origin = self.native.frame().origin;
         Point::new(raw_origin.x as i32, raw_origin.y as i32)
+    }
+
+    #[inline]
+    fn set_min_size(&mut self, min_size: Size) {
+        let size = CGSize::new(min_size.width as f64, min_size.height as f64);
+        self.native.setMinSize(size);
+    }
+
+    #[inline]
+    fn min_size(&self) -> Size {
+        let min_size = unsafe { self.native.minSize() };
+        Size::new(min_size.width as usize, min_size.height as usize)
+    }
+
+    #[inline]
+    fn set_max_size(&mut self, max_size: Size) {
+        let size = CGSize::new(max_size.width as f64, max_size.height as f64);
+        self.native.setMaxSize(size);
+    }
+
+    #[inline]
+    fn max_size(&self) -> Size {
+        let max_size = unsafe { self.native.maxSize() };
+        Size::new(max_size.width as usize, max_size.height as usize)
+    }
+
+    #[inline]
+    fn maximize(&mut self) { self.native.zoom(None); }
+
+    #[inline]
+    fn is_maximized(&self) -> bool { self.native.isZoomed() }
+
+    #[inline]
+    fn content_size(&self) -> Size {
+        let size = unsafe { self.native.contentLayoutRect().size };
+        Size::new(size.width as usize, size.height as usize)
+    }
+
+    #[inline]
+    fn is_visible(&self) -> bool { self.native.isVisible() }
+
+    #[inline]
+    fn close(&mut self) { self.native.close(); }
+
+    #[inline]
+    fn minimize(&mut self) { self.native.miniaturize(None); }
+
+    #[inline]
+    fn is_minimized(&self) -> bool { self.native.isMiniaturized() }
+
+    #[inline]
+    fn restore(&mut self) {
+        if self.native.isMiniaturized() {
+            unsafe { self.native.deminiaturize(None) };
+        }
     }
 }
