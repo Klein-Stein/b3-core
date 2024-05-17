@@ -2,6 +2,7 @@ use b3_platform::{
     Action,
     ActiveApplication,
     Application,
+    ContextOwner,
     Event,
     EventHandler,
     LifeCycle,
@@ -10,19 +11,19 @@ use b3_platform::{
     Window,
 };
 
-fn create_menu() -> Menu {
+fn create_menu(ctx: &impl ContextOwner) -> Menu {
     let quit_menu_item = MenuItem::builder()
         .with_title("Quit")
         .with_action(Action::new_event("quit"))
         .with_macos_short_code("q")
-        .build();
-    let app_menu = Menu::builder().with_item(quit_menu_item).build();
+        .build(ctx);
+    let app_menu = Menu::builder().with_item(quit_menu_item).build(ctx);
 
     let app_menu_item = MenuItem::builder()
         .with_title("Bioma")
         .with_submenu(app_menu)
-        .build();
-    Menu::builder().with_item(app_menu_item).build()
+        .build(ctx);
+    Menu::builder().with_item(app_menu_item).build(ctx)
 }
 
 struct State {
@@ -31,9 +32,9 @@ struct State {
 }
 
 impl State {
-    fn new() -> Self {
-        let menu = create_menu();
-        let window = Window::builder().with_title("B3 Platform").build();
+    fn new(ctx: &impl ContextOwner) -> Self {
+        let menu = create_menu(ctx);
+        let window = Window::builder().with_title("B3 Platform").build(ctx);
         Self {
             menu,
             window,
@@ -60,7 +61,7 @@ impl EventHandler for State {
 }
 
 fn main() {
-    let app = Application::new();
-    let state = State::new();
+    let app = Application::new().unwrap();
+    let state = State::new(&app);
     app.run(state);
 }

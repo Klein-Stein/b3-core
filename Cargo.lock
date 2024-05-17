@@ -38,6 +38,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "06ea2b9bc92be3c2baa9334a323ebca2d6f074ff852cd1d7b11064035cd3868f"
 
 [[package]]
+name = "dispatch"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bd0c93bb4b0c6d9b77f4435b0ae98c24d17f1c45b2ff844c6151a07256ca923b"
+
+[[package]]
 name = "libc"
 version = "0.2.154"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -95,5 +101,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cfaefe14254871ea16c7d88968c0ff14ba554712a20d76421eec52f0a7fb8904"
 dependencies = [
  "block2",
+ "dispatch",
  "objc2",
 ]

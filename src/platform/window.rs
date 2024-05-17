@@ -1,6 +1,13 @@
-use crate::{ActiveApplication, Point, Size, WindowId, WindowOptions};
+use crate::{ActiveApplication, ContextOwner, InitMode, Point, Size, WindowId, WindowOptions};
 
 pub(crate) trait WindowApi {
+    fn new(
+        ctx: &impl ContextOwner,
+        mode: InitMode,
+        options: Option<WindowOptions>,
+        size: Size,
+    ) -> Self;
+
     fn init(&mut self, window_id: WindowId);
 
     fn set_title(&mut self, title: String);

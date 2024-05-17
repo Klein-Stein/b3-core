@@ -2,7 +2,8 @@
 
 use crate::{
     macos::{MenuImpl, MenuItemImpl},
-    platform::MenuItemApi,
+    platform::{MenuApi, MenuItemApi, Wrapper},
+    ContextOwner,
 };
 
 /// Menu item action.
@@ -52,26 +53,19 @@ impl ShortCode {
 
 /// Application menu item.
 #[derive(Debug)]
-pub struct MenuItem {
-    pub(crate) menu_item_impl: MenuItemImpl,
-}
+pub struct MenuItem(MenuItemImpl);
 
 impl MenuItem {
     /// Returns a new builder instance.
     pub fn builder() -> MenuItemBuilder { MenuItemBuilder::new() }
 
-    fn new() -> Self {
-        Self {
-            menu_item_impl: MenuItemImpl::new(false),
-        }
-    }
+    fn new(ctx: &impl ContextOwner) -> Self { Self(MenuItemImpl::new(ctx, false)) }
 
     /// Creates a new menu separator.
-    pub fn separator() -> Self {
-        Self {
-            menu_item_impl: MenuItemImpl::new(true),
-        }
-    }
+    ///
+    /// # Parameters:
+    /// * `ctx` - ContextOnwer
+    pub fn separator(ctx: &impl ContextOwner) -> Self { Self(MenuItemImpl::new(ctx, true)) }
 }
 
 impl MenuItem {
@@ -83,45 +77,67 @@ impl MenuItem {
     where
         S: Into<String>,
     {
-        self.menu_item_impl.set_title(title);
+        self.0.set_title(title);
     }
 
     /// Returns a menu item title.
-    pub fn title(&self) -> String { self.menu_item_impl.title() }
+    pub fn title(&self) -> String { self.0.title() }
 
     /// Sets a menu item action.
     ///
     /// # Parameters:
     /// * `action` - Menu item action.
-    pub fn set_action(&mut self, action: Option<Action>) { self.menu_item_impl.set_action(action); }
+    pub fn set_action(&mut self, action: Option<Action>) { self.0.set_action(action); }
 
     /// Sets a submenu.
     ///
     /// # Parameters:
     /// * `submenu` - Submenu of the current menu item.
-    pub fn set_submenu(&mut self, submenu: Option<Menu>) {
-        self.menu_item_impl.set_submenu(submenu);
-    }
+    pub fn set_submenu(&mut self, submenu: Option<Menu>) { self.0.set_submenu(submenu); }
+
+    /// Returns a submenu.
+    fn submenu(&self) -> Option<&Menu> { self.0.submenu() }
+
+    /// Returns a mutable submenu.
+    fn submenu_mut(&mut self) -> Option<&mut Menu> { self.0.submenu_mut() }
+
+    /// Checks if a menu item has a submenu.
+    fn has_submenu(&self) -> bool { self.0.has_submenu() }
 
     /// Sets short codes for different platforms.
     ///
     /// # Parameters:
     /// * `short_code` - Short codes.
-    pub fn set_short_code(&mut self, short_code: ShortCode) {
-        self.menu_item_impl.set_short_code(short_code);
-    }
+    pub fn set_short_code(&mut self, short_code: ShortCode) { self.0.set_short_code(short_code); }
 
     /// Returns short codes for different platforms.
-    pub fn short_code(&self) -> &ShortCode { self.menu_item_impl.short_code() }
+    pub fn short_code(&self) -> &ShortCode { self.0.short_code() }
 
     /// Turns on/off a menu item.
     ///
     /// # Parameters:
     /// * `enabled` - Enable flag.
-    pub fn set_enabled(&mut self, enabled: bool) { self.menu_item_impl.set_enabled(enabled); }
+    pub fn set_enabled(&mut self, enabled: bool) { self.0.set_enabled(enabled); }
 
     /// Returns if a menu item is turned on/off.
-    pub fn enabled(&self) -> bool { self.menu_item_impl.enabled() }
+    pub fn enabled(&self) -> bool { self.0.enabled() }
+
+    /// Sets a tooltip for the menu item.
+    ///
+    /// # Parameters:
+    /// * `tooltip` - Tooltip message.
+    fn set_tooltip(&mut self, tooltip: Option<String>) { self.0.set_tooltip(tooltip); }
+
+    /// Returns a tooltip of the menu item.
+    fn tooltip(&self) -> Option<String> { self.0.tooltip() }
+}
+
+impl Wrapper<MenuItemImpl> for MenuItem {
+    #[inline]
+    fn get_impl(&self) -> &MenuItemImpl { &self.0 }
+
+    #[inline]
+    fn get_impl_mut(&mut self) -> &mut MenuItemImpl { &mut self.0 }
 }
 
 /// Menu item builder.
@@ -197,8 +213,11 @@ impl MenuItemBuilder {
     }
 
     /// Build a new menu item with specified options.
-    pub fn build(self) -> MenuItem {
-        let mut item = MenuItem::new();
+    ///
+    /// # Parameters:
+    /// * `ctx` - Context owner.
+    pub fn build(self, ctx: &impl ContextOwner) -> MenuItem {
+        let mut item = MenuItem::new(ctx);
 
         if let Some(title) = self.title {
             item.set_title(title);
@@ -218,19 +237,23 @@ impl MenuItemBuilder {
 
 /// Application menu/submenu.
 #[derive(Debug)]
-pub struct Menu {
-    pub(crate) menu_impl: MenuImpl,
-}
+pub struct Menu(MenuImpl);
 
 impl Menu {
     /// Returns a new builder instance.
     pub fn builder() -> MenuBuilder { MenuBuilder::new() }
 
-    fn new(items: Vec<MenuItem>) -> Self {
-        Self {
-            menu_impl: MenuImpl::new(items),
-        }
+    fn new(ctx: &impl ContextOwner, items: Vec<MenuItem>) -> Self {
+        Self(MenuImpl::new(ctx, items))
     }
+}
+
+impl Wrapper<MenuImpl> for Menu {
+    #[inline]
+    fn get_impl(&self) -> &MenuImpl { &self.0 }
+
+    #[inline]
+    fn get_impl_mut(&mut self) -> &mut MenuImpl { &mut self.0 }
 }
 
 /// Menu item builder.
@@ -257,5 +280,8 @@ impl MenuBuilder {
     }
 
     /// Build a new menu with registered items.
-    pub fn build(self) -> Menu { Menu::new(self.items) }
+    ///
+    /// # Parameters:
+    /// * `ctx` - Context owner.
+    pub fn build(self, ctx: &impl ContextOwner) -> Menu { Menu::new(ctx, self.items) }
 }

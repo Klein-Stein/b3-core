@@ -1,14 +1,24 @@
 use std::{cell::RefCell, fmt::Debug};
 
-use objc2::{declare_class, msg_send_id, mutability, rc::Id, sel, ClassType, DeclaredClass};
+use objc2::{
+    declare_class,
+    msg_send_id,
+    mutability,
+    rc::{autoreleasepool, Id},
+    sel,
+    ClassType,
+    DeclaredClass,
+};
 use objc2_app_kit::{NSEventModifierFlags, NSMenu, NSMenuItem};
-use objc2_foundation::{MainThreadMarker, NSObjectProtocol, NSString};
+use objc2_foundation::{MainThreadBound, MainThreadMarker, NSObjectProtocol, NSString};
 
 use crate::{
     macos::app_delegate::AppDelegate,
-    platform::{MenuApi, MenuItemApi},
+    platform::{MenuApi, MenuItemApi, Wrapper},
     Action,
+    ContextOwner,
     Event,
+    Image,
     Menu,
     MenuItem,
     ShortCode,
@@ -80,12 +90,26 @@ impl CocoaMenuItem {
 
 #[derive(Debug)]
 pub(crate) struct MenuItemImpl {
-    pub(crate) short_code: ShortCode,
-    pub(super) native:     Id<CocoaMenuItem>,
-    pub(super) submenu:    Option<Menu>,
+    mtm:        MainThreadMarker,
+    short_code: ShortCode,
+    native:     MainThreadBound<Id<CocoaMenuItem>>,
+    submenu:    Option<Menu>,
+    icon:       Option<Image>,
 }
 
 impl MenuItemImpl {
+    fn native_on_main<F, R>(&self, f: F) -> R
+    where
+        F: Send + FnOnce(&Id<CocoaMenuItem>) -> R,
+        R: Send,
+    {
+        self.native
+            .get_on_main(|native| autoreleasepool(|_| f(native)))
+    }
+
+    #[inline]
+    fn get_native(&self) -> &Id<CocoaMenuItem> { self.native.get(self.mtm) }
+
     fn parse_short_code(&self, code: &String) {
         let parts = code.split("+").collect::<Vec<&str>>();
         let mut masks = Vec::new();
@@ -124,37 +148,40 @@ impl MenuItemImpl {
         }
 
         let code = NSString::from_str(&code);
-        unsafe { self.native.setKeyEquivalent(&code) };
 
-        let mut mask = if masks.is_empty() {
-            NSEventModifierFlags::NSEventModifierFlagCommand.0
-        } else {
-            masks[0]
-        };
+        self.native_on_main(|native| {
+            unsafe { native.setKeyEquivalent(&code) };
 
-        for m in masks.iter().skip(1) {
-            mask |= m;
-        }
+            let mut mask = if masks.is_empty() {
+                NSEventModifierFlags::NSEventModifierFlagCommand.0
+            } else {
+                masks[0]
+            };
 
-        self.native
-            .setKeyEquivalentModifierMask(NSEventModifierFlags(mask));
+            for m in masks.iter().skip(1) {
+                mask |= m;
+            }
+
+            native.setKeyEquivalentModifierMask(NSEventModifierFlags(mask));
+        });
     }
 }
 
 impl MenuItemApi for MenuItemImpl {
     #[inline]
-    fn new(separator: bool) -> Self {
-        let mtm: MainThreadMarker = MainThreadMarker::new()
-            .expect("on macOS, `MenuItemImpl` instance must be created on the main thread!");
+    fn new(ctx: &impl ContextOwner, separator: bool) -> Self {
+        let mtm = ctx.context().get_impl().mtm();
         let native = if separator {
             unsafe { msg_send_id![CocoaMenuItem::class(), separatorItem] }
         } else {
             CocoaMenuItem::new(mtm)
         };
         Self {
-            native,
-            submenu: None,
+            mtm,
+            native: MainThreadBound::new(native, mtm),
             short_code: Default::default(),
+            submenu: None,
+            icon: None,
         }
     }
 
@@ -164,25 +191,44 @@ impl MenuItemApi for MenuItemImpl {
         S: Into<String>,
     {
         let title = title.into();
-        let title = NSString::from_str(&title);
-        unsafe { self.native.setTitle(&title) };
+        self.native_on_main(|native| {
+            let title = NSString::from_str(&title);
+            unsafe { native.setTitle(&title) };
+        });
     }
 
     #[inline]
-    fn title(&self) -> String { unsafe { self.native.title().to_string() } }
+    fn title(&self) -> String {
+        self.native_on_main(|native| unsafe { native.title().to_string() })
+    }
 
     #[inline]
-    fn set_action(&mut self, action: Option<Action>) { self.native.set_action(action); }
+    fn set_action(&mut self, action: Option<Action>) {
+        self.native_on_main(|native| {
+            native.set_action(action);
+        });
+    }
 
     #[inline]
     fn set_submenu(&mut self, submenu: Option<Menu>) {
-        self.submenu = submenu;
-        if let Some(submenu) = &self.submenu {
-            self.native.setSubmenu(Some(&submenu.menu_impl.native));
+        let native = self.get_native();
+        if let Some(submenu) = &submenu {
+            let ns_menu = submenu.get_impl().get_native();
+            native.setSubmenu(Some(&ns_menu));
         } else {
-            self.native.setSubmenu(None);
+            native.setSubmenu(None);
         }
+        self.submenu = submenu;
     }
+
+    #[inline]
+    fn submenu(&self) -> Option<&Menu> { self.submenu.as_ref() }
+
+    #[inline]
+    fn submenu_mut(&mut self) -> Option<&mut Menu> { self.submenu.as_mut() }
+
+    #[inline]
+    fn has_submenu(&self) -> bool { self.native_on_main(|native| unsafe { native.hasSubmenu() }) }
 
     #[inline]
     fn set_short_code(&mut self, short_code: ShortCode) {
@@ -197,42 +243,95 @@ impl MenuItemApi for MenuItemImpl {
     fn short_code(&self) -> &ShortCode { &self.short_code }
 
     #[inline]
-    fn set_enabled(&mut self, enabled: bool) { unsafe { self.native.setEnabled(enabled) }; }
+    fn set_enabled(&mut self, enabled: bool) {
+        self.native_on_main(|native| {
+            unsafe { native.setEnabled(enabled) };
+        });
+    }
 
     #[inline]
-    fn enabled(&self) -> bool { unsafe { self.native.isEnabled() } }
+    fn enabled(&self) -> bool { self.native_on_main(|native| unsafe { native.isEnabled() }) }
+
+    #[inline]
+    fn set_tooltip(&mut self, tooltip: Option<String>) {
+        self.native_on_main(|native| match tooltip {
+            Some(tooltip) => {
+                let tooltip = NSString::from_str(&tooltip);
+                unsafe { native.setToolTip(Some(&tooltip)) };
+            }
+            None => unsafe { native.setToolTip(None) },
+        });
+    }
+
+    #[inline]
+    fn tooltip(&self) -> Option<String> {
+        self.native_on_main(|native| match unsafe { native.toolTip() } {
+            Some(tooltip) => Some(tooltip.to_string()),
+            None => None,
+        })
+    }
+
+    #[inline]
+    fn set_icon(&mut self, icon: Option<Image>) {
+        let ns_menu = self.get_native();
+        if let Some(icon) = &icon {
+            let ns_icon = icon.get_impl().get_native();
+            unsafe { ns_menu.setImage(Some(&ns_icon)) };
+        } else {
+            unsafe { ns_menu.setImage(None) };
+        }
+        self.icon = icon;
+    }
+
+    #[inline]
+    fn icon(&self) -> Option<&Image> { self.icon.as_ref() }
 }
 
 #[derive(Debug)]
 pub(crate) struct MenuImpl {
-    pub(super) native: Id<NSMenu>,
-    pub(crate) items:  Vec<MenuItem>,
+    mtm:    MainThreadMarker,
+    native: MainThreadBound<Id<NSMenu>>,
+    items:  Vec<MenuItem>,
 }
 
 impl MenuImpl {
-    pub(crate) fn new(items: Vec<MenuItem>) -> Self {
-        let mtm: MainThreadMarker = MainThreadMarker::new()
-            .expect("on macOS, `MenuImpl` instance must be created on the main thread!");
+    fn native_on_main<F, R>(&self, f: F) -> R
+    where
+        F: Send + FnOnce(&Id<NSMenu>) -> R,
+        R: Send,
+    {
+        self.native
+            .get_on_main(|native| autoreleasepool(|_| f(native)))
+    }
+
+    pub(super) fn get_native(&self) -> &Id<NSMenu> { self.native.get(self.mtm) }
+}
+
+impl MenuApi for MenuImpl {
+    #[inline]
+    fn new(ctx: &impl ContextOwner, items: Vec<MenuItem>) -> Self {
+        let mtm = ctx.context().get_impl().mtm();
 
         let native = NSMenu::new(mtm);
 
         unsafe { native.setAutoenablesItems(false) };
 
         for item in items.iter() {
-            native.addItem(&item.menu_item_impl.native);
+            native.addItem(&item.get_impl().native.get(mtm));
         }
 
         Self {
-            native,
+            mtm,
+            native: MainThreadBound::new(native, mtm),
             items,
         }
     }
-}
 
-impl MenuApi for MenuImpl {
     #[inline]
     fn add_item(&mut self, item: MenuItem) {
-        self.native.addItem(&item.menu_item_impl.native);
+        let ns_menu_item = item.get_impl().get_native();
+        let ns_menu = self.get_native();
+        ns_menu.addItem(&ns_menu_item);
         self.items.push(item);
     }
 }

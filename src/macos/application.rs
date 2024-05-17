@@ -8,7 +8,7 @@ use objc2::{
     runtime::ProtocolObject,
 };
 use objc2_app_kit::{NSApplication, NSApplicationActivationPolicy};
-use objc2_foundation::MainThreadMarker;
+use objc2_foundation::{MainThreadBound, MainThreadMarker};
 
 use super::{
     app_delegate::AppDelegate,
@@ -17,8 +17,11 @@ use super::{
     panicinfo::PanicInfo,
 };
 use crate::{
-    platform::{ActiveApplicationApi, ApplicationApi},
+    platform::{ActiveApplicationApi, ApplicationApi, Wrapper},
     ActiveApplication,
+    Context,
+    ContextOwner,
+    Error,
     EventHandler,
     Menu,
 };
@@ -59,26 +62,41 @@ pub fn stop_app_on_panic<F: FnOnce() -> R + UnwindSafe, R>(
 }
 
 #[derive(Debug)]
+pub(crate) struct ContextImpl(MainThreadMarker);
+
+impl ContextImpl {
+    #[inline]
+    pub(super) fn mtm(&self) -> MainThreadMarker { self.0 }
+}
+
+#[derive(Debug)]
 pub(crate) struct ActiveApplicationImpl {
-    pub(super) mtm:      MainThreadMarker,
-    pub(super) delegate: Id<AppDelegate>,
+    context:  Context,
+    delegate: MainThreadBound<Id<AppDelegate>>,
 }
 
 impl ActiveApplicationImpl {
+    #[inline]
     fn new(mtm: MainThreadMarker, delegate: Id<AppDelegate>) -> Self {
         Self {
-            mtm,
-            delegate,
+            context:  Context::new(ContextImpl(mtm)),
+            delegate: MainThreadBound::new(delegate, mtm),
         }
+    }
+
+    pub(super) fn get_app_delegate(&self) -> &Id<AppDelegate> {
+        let mtm = self.context.get_impl().mtm();
+        self.delegate.get(mtm)
     }
 }
 
 impl ActiveApplicationApi for ActiveApplicationImpl {
     #[inline]
     fn set_menu(&mut self, menu: Option<&Menu>) {
-        let app = NSApplication::sharedApplication(self.mtm);
+        let mtm = self.context.get_impl().mtm();
+        let app = NSApplication::sharedApplication(mtm);
         if let Some(menu) = menu {
-            app.setMainMenu(Some(&menu.menu_impl.native));
+            app.setMainMenu(Some(&menu.get_impl().get_native()));
         } else {
             app.setMainMenu(None);
         }
@@ -87,22 +105,40 @@ impl ActiveApplicationApi for ActiveApplicationImpl {
     #[inline]
     fn stop(&mut self) {
         autoreleasepool(|_| {
-            let app = NSApplication::sharedApplication(self.mtm);
+            let mtm = self.context.get_impl().mtm();
+            let app = NSApplication::sharedApplication(mtm);
             app.stop(None);
         });
     }
 }
 
+impl ContextOwner for ActiveApplicationImpl {
+    #[inline]
+    fn context(&self) -> &Context { &self.context }
+}
+
 #[derive(Debug)]
-pub(crate) struct ApplicationImpl;
+pub(crate) struct ApplicationImpl {
+    context: Context,
+}
 
 impl ApplicationApi for ApplicationImpl {
-    fn new() -> Self { Self {} }
+    #[inline]
+    fn new() -> Result<Self, Error> {
+        if let Some(mtm) = MainThreadMarker::new() {
+            Ok(Self {
+                context: Context::new(ContextImpl(mtm)),
+            })
+        } else {
+            Err(Error::new(
+                "application instance must be created on the main thread.",
+            ))
+        }
+    }
 
+    #[inline]
     fn run(&mut self, handler: impl EventHandler + 'static) {
-        let mtm: MainThreadMarker = MainThreadMarker::new()
-            .expect("on macOS, `Application` instance must be created on the main thread!");
-
+        let mtm = self.context.get_impl().mtm();
         let ns_app = NSApplication::sharedApplication(mtm);
         ns_app.setActivationPolicy(NSApplicationActivationPolicy::Regular);
 
@@ -126,4 +162,9 @@ impl ApplicationApi for ApplicationImpl {
             unsafe { ns_app.run() };
         });
     }
+}
+
+impl ContextOwner for ApplicationImpl {
+    #[inline]
+    fn context(&self) -> &Context { &self.context }
 }

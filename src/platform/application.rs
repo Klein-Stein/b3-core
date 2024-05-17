@@ -1,4 +1,4 @@
-use crate::{EventHandler, Menu};
+use crate::{Error, EventHandler, Menu};
 
 pub trait ActiveApplicationApi {
     fn set_menu(&mut self, menu: Option<&Menu>);
@@ -7,6 +7,8 @@ pub trait ActiveApplicationApi {
 }
 
 pub(crate) trait ApplicationApi {
-    fn new() -> Self;
+    fn new() -> Result<Self, Error>
+    where
+        Self: Sized;
     fn run(&mut self, handler: impl EventHandler + 'static);
 }

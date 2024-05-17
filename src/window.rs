@@ -1,4 +1,11 @@
-use crate::{macos::WindowImpl, platform::WindowApi, ActiveApplication, Point, Size};
+use crate::{
+    macos::WindowImpl,
+    platform::{WindowApi, Wrapper},
+    ActiveApplication,
+    ContextOwner,
+    Point,
+    Size,
+};
 
 /// Window options.
 #[derive(Debug, Default, PartialEq, Eq, Clone, Copy)]
@@ -47,8 +54,13 @@ impl Window {
     /// Returns a new builder instance.
     pub fn builder() -> WindowBuilder { WindowBuilder::new() }
 
-    fn new(mode: InitMode, options: Option<WindowOptions>, size: Size) -> Self {
-        let mut window = Self(WindowImpl::new(mode, options, size));
+    fn new(
+        ctx: &impl ContextOwner,
+        mode: InitMode,
+        options: Option<WindowOptions>,
+        size: Size,
+    ) -> Self {
+        let mut window = Self(WindowImpl::new(ctx, mode, options, size));
         window.0.init(window.id());
         window
     }
@@ -152,6 +164,14 @@ impl Window {
     fn restore(&mut self) { self.0.restore(); }
 }
 
+impl Wrapper<WindowImpl> for Window {
+    #[inline]
+    fn get_impl(&self) -> &WindowImpl { &self.0 }
+
+    #[inline]
+    fn get_impl_mut(&mut self) -> &mut WindowImpl { &mut self.0 }
+}
+
 /// Window builder.
 #[derive(Default)]
 pub struct WindowBuilder {
@@ -209,8 +229,11 @@ impl WindowBuilder {
     }
 
     /// Builds a new window instance with passed parameters.
-    pub fn build(self) -> Window {
-        let mut window = Window::new(self.mode, self.flags, self.size);
+    ///
+    /// # Parameters:
+    /// * `ctx` - Context onwer.
+    pub fn build(self, ctx: &impl ContextOwner) -> Window {
+        let mut window = Window::new(ctx, self.mode, self.flags, self.size);
 
         if let Some(title) = self.title {
             window.set_title(title);
