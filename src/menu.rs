@@ -4,6 +4,7 @@ use crate::{
     macos::{MenuImpl, MenuItemImpl},
     platform::{MenuApi, MenuItemApi, Wrapper},
     ContextOwner,
+    Image,
 };
 
 /// Menu item action.
@@ -130,6 +131,15 @@ impl MenuItem {
 
     /// Returns a tooltip of the menu item.
     fn tooltip(&self) -> Option<String> { self.0.tooltip() }
+
+    /// Sets a menu item icon.
+    ///
+    /// # Parameters:
+    /// * `icon` - Menu item icon.
+    fn set_icon(&mut self, icon: Option<Image>) { self.0.set_icon(icon); }
+
+    /// Returns a menu item icon.
+    fn icon(&self) -> Option<&Image> { self.0.icon() }
 }
 
 impl Wrapper<MenuItemImpl> for MenuItem {
@@ -141,23 +151,20 @@ impl Wrapper<MenuItemImpl> for MenuItem {
 }
 
 /// Menu item builder.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct MenuItemBuilder {
     title:      Option<String>,
     action:     Option<Action>,
     submenu:    Option<Menu>,
     short_code: ShortCode,
     enabled:    Option<bool>,
+    icon:       Option<Image>,
 }
 
 impl MenuItemBuilder {
     fn new() -> Self {
         Self {
-            title:      None,
-            action:     None,
-            submenu:    None,
-            short_code: Default::default(),
-            enabled:    None,
+            ..Default::default()
         }
     }
 
@@ -212,6 +219,15 @@ impl MenuItemBuilder {
         self
     }
 
+    /// Sets an icon for the item under building.
+    ///
+    /// # Parameters:
+    /// * `icon` - Menu item icon.
+    pub fn with_icon(mut self, icon: Image) -> MenuItemBuilder {
+        self.icon = Some(icon);
+        self
+    }
+
     /// Build a new menu item with specified options.
     ///
     /// # Parameters:
@@ -223,12 +239,22 @@ impl MenuItemBuilder {
             item.set_title(title);
         }
 
-        item.set_action(self.action);
-        item.set_submenu(self.submenu);
+        if self.action.is_some() {
+            item.set_action(self.action);
+        }
+
+        if self.submenu.is_some() {
+            item.set_submenu(self.submenu);
+        }
+
         item.set_short_code(self.short_code);
 
         if let Some(enabled) = self.enabled {
             item.set_enabled(enabled);
+        }
+
+        if self.icon.is_some() {
+            item.set_icon(self.icon);
         }
 
         item

@@ -25,8 +25,6 @@ pub enum ImageType {
 pub struct Image(ImageImpl);
 
 impl Image {
-    pub(crate) fn new(image_impl: ImageImpl) -> Self { Self(image_impl) }
-
     /// Creates a new image from bytes.
     ///
     /// # Parameters:

@@ -4,14 +4,19 @@ use b3_platform::{
     Application,
     ContextOwner,
     Event,
+    Image,
+    ImageType,
     LifeCycle,
     Menu,
     MenuItem,
 };
 
 fn create_menu(ctx: &impl ContextOwner) -> Menu {
+    let icon_data = include_bytes!("assets/gears.tif").to_vec();
+    let gear_icon = Image::from_data(ctx, &icon_data, ImageType::Png).unwrap();
     let global_settings_menu_item = MenuItem::builder()
         .with_title("Global Settings...")
+        .with_icon(gear_icon)
         .with_action(Action::Callback(|| {
             println!("`Global Settings` clicked!");
         }))
@@ -20,6 +25,7 @@ fn create_menu(ctx: &impl ContextOwner) -> Menu {
         .build(ctx);
     let local_settigs_menu_item = MenuItem::builder()
         .with_title("Local Setting...")
+        .with_icon(Image::from_str(ctx, "hammer").unwrap())
         .with_action(Action::Callback(|| {
             println!("`Local Settings` clicked!");
         }))
