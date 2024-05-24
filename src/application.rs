@@ -63,7 +63,7 @@ unsafe impl Sync for ActiveApplication {}
 
 /// The main entity that provides entrypoints to the event loop and other API.
 ///
-/// Any program that uses the **b3-platform** crate must create an instance of
+/// Any program that uses the **b3-core** crate must create an instance of
 /// this structure before using any other crate's entities.
 #[derive(Debug)]
 pub struct Application(ApplicationImpl);
@@ -74,7 +74,7 @@ impl Application {
     /// # Examples:
     ///
     /// ```rust
-    /// use b3_platform::Application;
+    /// use b3_core::Application;
     ///
     /// let app = Application::new().unwrap();
     /// ```
