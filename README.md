@@ -1,6 +1,6 @@
-# B3. Platform
+# B3. Core
 
-**B3. Platform** is a cross-platform framework that provides access and management of the main elements of a graphical application:
+**B3. Core** is a cross-platform framework that provides access and management of the main elements of a graphical application:
 
 - events including mouse, keyboard and touchpad events,
 - menus: application, context and etc.,
@@ -16,11 +16,11 @@ If you want to make a **Pull Request** or open a new **Issue**, please, make sur
 
 **Main:**
 
-- **GitHub**: <https://github.com/Klein-Stein/b3-platform>
+- **GitHub**: <https://github.com/Klein-Stein/b3-core>
 
 **Mirror:**
 
-- **GitFlic**: <https://gitflic.ru/project/klein-stein/b3-platform>
+- **GitFlic**: <https://gitflic.ru/project/klein-stein/b3-core>
 
 ## Roadmap
 

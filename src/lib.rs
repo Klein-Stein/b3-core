@@ -1,4 +1,4 @@
-//! This module contains all public exports of the b3-platform crate.
+//! This module contains all public exports of the b3-core crate.
 
 #![warn(missing_docs)]
 

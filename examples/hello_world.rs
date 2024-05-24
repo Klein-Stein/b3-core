@@ -1,4 +1,4 @@
-use b3_platform::{ActiveApplication, Application, Event};
+use b3_core::{ActiveApplication, Application, Event};
 
 fn main() {
     let app = Application::new().unwrap();

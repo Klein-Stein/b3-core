@@ -1,5 +1,5 @@
 [package]
-name = "b3-platform"
+name = "b3-core"
 version = "0.1.0"
 edition = "2021"
 

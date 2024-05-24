@@ -7,16 +7,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in library 'b3-platform'",
+            "name": "Debug unit tests in library 'b3-core'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
                     "--lib",
-                    "--package=b3-platform"
+                    "--package=b3-core"
                 ],
                 "filter": {
-                    "name": "b3-platform",
+                    "name": "b3-core",
                     "kind": "lib"
                 }
             },
@@ -31,7 +31,7 @@
                 "args": [
                     "build",
                     "--example=hello-world",
-                    "--package=b3-platform"
+                    "--package=b3-core"
                 ],
                 "filter": {
                     "name": "hello-world",
@@ -50,7 +50,7 @@
                     "test",
                     "--no-run",
                     "--example=hello-world",
-                    "--package=b3-platform"
+                    "--package=b3-core"
                 ],
                 "filter": {
                     "name": "hello-world",
@@ -68,7 +68,7 @@
                 "args": [
                     "build",
                     "--example=app-menu",
-                    "--package=b3-platform"
+                    "--package=b3-core"
                 ],
                 "filter": {
                     "name": "app-menu",
@@ -87,7 +87,7 @@
                     "test",
                     "--no-run",
                     "--example=app-menu",
-                    "--package=b3-platform"
+                    "--package=b3-core"
                 ],
                 "filter": {
                     "name": "app-menu",
@@ -105,7 +105,7 @@
                 "args": [
                     "build",
                     "--example=event-handling",
-                    "--package=b3-platform"
+                    "--package=b3-core"
                 ],
                 "filter": {
                     "name": "event-handling",
@@ -124,7 +124,7 @@
                     "test",
                     "--no-run",
                     "--example=event-handling",
-                    "--package=b3-platform"
+                    "--package=b3-core"
                 ],
                 "filter": {
                     "name": "event-handling",
@@ -142,7 +142,7 @@
                 "args": [
                     "build",
                     "--example=empty-window",
-                    "--package=b3-platform"
+                    "--package=b3-core"
                 ],
                 "filter": {
                     "name": "empty-window",
@@ -161,7 +161,7 @@
                     "test",
                     "--no-run",
                     "--example=empty-window",
-                    "--package=b3-platform"
+                    "--package=b3-core"
                 ],
                 "filter": {
                     "name": "empty-window",

@@ -1,4 +1,4 @@
-use b3_platform::{
+use b3_core::{
     Action,
     ActiveApplication,
     Application,
