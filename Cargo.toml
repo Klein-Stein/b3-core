@@ -4,22 +4,14 @@ version = "0.1.0"
 edition = "2021"
 
 [[example]]
-name = "hello-world"
-path = "examples/hello_world.rs"
+name = "hello-app"
+path = "examples/hello_app.rs"
 
 [[example]]
-name = "app-menu"
-path = "examples/app_menu.rs"
+name = "hello-window"
+path = "examples/hello_window.rs"
 
-[[example]]
-name = "event-handling"
-path = "examples/event_handling.rs"
-
-[[example]]
-name = "empty-window"
-path = "examples/empty_window.rs"
-
-[dependencies]
+[target.'cfg(target_os = "macos")'.dependencies]
 core-foundation = "0.9.4"
 objc2 = "0.5.1"
 objc2-app-kit = {version = "0.2.0", features = ["NSApplication", "NSButton", "NSControl", "NSEvent", "NSGraphics", "NSImage", "NSGraphicsContext", "NSMenu", "NSMenuItem", "NSResponder", "NSRunningApplication", "NSView", "NSWindow"]}

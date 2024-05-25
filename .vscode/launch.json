@@ -26,15 +26,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug example 'hello-world'",
+            "name": "Debug example 'hello-app'",
             "cargo": {
                 "args": [
                     "build",
-                    "--example=hello-world",
+                    "--example=hello-app",
                     "--package=b3-core"
                 ],
                 "filter": {
-                    "name": "hello-world",
+                    "name": "hello-app",
                     "kind": "example"
                 }
             },
@@ -44,16 +44,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in example 'hello-world'",
+            "name": "Debug unit tests in example 'hello-app'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--example=hello-world",
+                    "--example=hello-app",
                     "--package=b3-core"
                 ],
                 "filter": {
-                    "name": "hello-world",
+                    "name": "hello-app",
                     "kind": "example"
                 }
             },
@@ -63,15 +63,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug example 'app-menu'",
+            "name": "Debug example 'hello-window'",
             "cargo": {
                 "args": [
                     "build",
-                    "--example=app-menu",
+                    "--example=hello-window",
                     "--package=b3-core"
                 ],
                 "filter": {
-                    "name": "app-menu",
+                    "name": "hello-window",
                     "kind": "example"
                 }
             },
@@ -81,90 +81,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in example 'app-menu'",
+            "name": "Debug unit tests in example 'hello-window'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--example=app-menu",
+                    "--example=hello-window",
                     "--package=b3-core"
                 ],
                 "filter": {
-                    "name": "app-menu",
-                    "kind": "example"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug example 'event-handling'",
-            "cargo": {
-                "args": [
-                    "build",
-                    "--example=event-handling",
-                    "--package=b3-core"
-                ],
-                "filter": {
-                    "name": "event-handling",
-                    "kind": "example"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug unit tests in example 'event-handling'",
-            "cargo": {
-                "args": [
-                    "test",
-                    "--no-run",
-                    "--example=event-handling",
-                    "--package=b3-core"
-                ],
-                "filter": {
-                    "name": "event-handling",
-                    "kind": "example"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug example 'empty-window'",
-            "cargo": {
-                "args": [
-                    "build",
-                    "--example=empty-window",
-                    "--package=b3-core"
-                ],
-                "filter": {
-                    "name": "empty-window",
-                    "kind": "example"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug unit tests in example 'empty-window'",
-            "cargo": {
-                "args": [
-                    "test",
-                    "--no-run",
-                    "--example=empty-window",
-                    "--package=b3-core"
-                ],
-                "filter": {
-                    "name": "empty-window",
+                    "name": "hello-window",
                     "kind": "example"
                 }
             },

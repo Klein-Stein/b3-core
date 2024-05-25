@@ -98,70 +98,70 @@ impl Window {
     pub fn show(&mut self, app: &ActiveApplication) { self.0.show(app); }
 
     /// Toggles the fullscreen mode of the window.
-    fn toggle_fullscreen(&mut self) { self.0.toggle_fullscreen(); }
+    pub fn toggle_fullscreen(&mut self) { self.0.toggle_fullscreen(); }
 
     /// Returns if a window is in the fullscreen mode.
-    fn is_fullscreen(&self) -> bool { self.0.is_fullscreen() }
+    pub fn is_fullscreen(&self) -> bool { self.0.is_fullscreen() }
 
     /// Sets a new frame size of the window.
     ///
     /// # Parameters:
     /// * `size` - Window frame size.
-    fn set_frame_size(&mut self, size: Size) { self.0.set_frame_size(size); }
+    pub fn set_frame_size(&mut self, size: Size) { self.0.set_frame_size(size); }
 
     /// Returns a frame size of the window.
-    fn frame_size(&self) -> Size { self.0.frame_size() }
+    pub fn frame_size(&self) -> Size { self.0.frame_size() }
 
     /// Sets a window origin position.
     ///
     /// # Parameters:
     /// * `position` - Origin position.
-    fn set_position(&mut self, position: Point) { self.0.set_position(position); }
+    pub fn set_position(&mut self, position: Point) { self.0.set_position(position); }
 
     /// Returns a window origin position.
-    fn position(&self) -> Point { self.0.position() }
+    pub fn position(&self) -> Point { self.0.position() }
 
     /// Sets a minimal size of the window frame.
     ///
     /// # Parameters:
     /// * `min_size` - Minimal window frame size.
-    fn set_min_size(&mut self, min_size: Size) { self.0.set_min_size(min_size); }
+    pub fn set_min_size(&mut self, min_size: Size) { self.0.set_min_size(min_size); }
 
     /// Returns a minimal size of the window frame.
-    fn min_size(&self) -> Size { self.0.min_size() }
+    pub fn min_size(&self) -> Size { self.0.min_size() }
 
     /// Sets a maximal size of the window frame.
     ///
     /// # Parameters:
     /// * `max_size` - Maximal window frame size.
-    fn set_max_size(&mut self, max_size: Size) { self.0.set_max_size(max_size); }
+    pub fn set_max_size(&mut self, max_size: Size) { self.0.set_max_size(max_size); }
 
     /// Returns a maximal size of the window frame.
-    fn max_size(&self) -> Size { self.0.max_size() }
+    pub fn max_size(&self) -> Size { self.0.max_size() }
 
     /// Switches a window into the maximized mode.
-    fn maximize(&mut self) { self.0.maximize() }
+    pub fn maximize(&mut self) { self.0.maximize() }
 
     /// Checks if a window is maximized.
-    fn is_maximized(&self) -> bool { self.0.is_maximized() }
+    pub fn is_maximized(&self) -> bool { self.0.is_maximized() }
 
     /// Returns a content size (inner window size).
-    fn content_size(&self) -> Size { self.0.content_size() }
+    pub fn content_size(&self) -> Size { self.0.content_size() }
 
     /// Checks if a window is visible on the screen.
-    fn is_visible(&self) -> bool { self.0.is_visible() }
+    pub fn is_visible(&self) -> bool { self.0.is_visible() }
 
     /// Closes a window.
-    fn close(&mut self) { self.0.close(); }
+    pub fn close(&mut self) { self.0.close(); }
 
     /// Switches a window into the minimized mode.
-    fn minimize(&mut self) { self.0.minimize(); }
+    pub fn minimize(&mut self) { self.0.minimize(); }
 
     /// Checks if a window is minimized.
-    fn is_minimized(&self) -> bool { self.0.is_minimized() }
+    pub fn is_minimized(&self) -> bool { self.0.is_minimized() }
 
     /// De-minimizes window.
-    fn restore(&mut self) { self.0.restore(); }
+    pub fn restore(&mut self) { self.0.restore(); }
 }
 
 impl Wrapper<WindowImpl> for Window {

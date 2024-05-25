@@ -97,13 +97,13 @@ impl MenuItem {
     pub fn set_submenu(&mut self, submenu: Option<Menu>) { self.0.set_submenu(submenu); }
 
     /// Returns a submenu.
-    fn submenu(&self) -> Option<&Menu> { self.0.submenu() }
+    pub fn submenu(&self) -> Option<&Menu> { self.0.submenu() }
 
     /// Returns a mutable submenu.
-    fn submenu_mut(&mut self) -> Option<&mut Menu> { self.0.submenu_mut() }
+    pub fn submenu_mut(&mut self) -> Option<&mut Menu> { self.0.submenu_mut() }
 
     /// Checks if a menu item has a submenu.
-    fn has_submenu(&self) -> bool { self.0.has_submenu() }
+    pub fn has_submenu(&self) -> bool { self.0.has_submenu() }
 
     /// Sets short codes for different platforms.
     ///
@@ -127,19 +127,19 @@ impl MenuItem {
     ///
     /// # Parameters:
     /// * `tooltip` - Tooltip message.
-    fn set_tooltip(&mut self, tooltip: Option<String>) { self.0.set_tooltip(tooltip); }
+    pub fn set_tooltip(&mut self, tooltip: Option<String>) { self.0.set_tooltip(tooltip); }
 
     /// Returns a tooltip of the menu item.
-    fn tooltip(&self) -> Option<String> { self.0.tooltip() }
+    pub fn tooltip(&self) -> Option<String> { self.0.tooltip() }
 
     /// Sets a menu item icon.
     ///
     /// # Parameters:
     /// * `icon` - Menu item icon.
-    fn set_icon(&mut self, icon: Option<Image>) { self.0.set_icon(icon); }
+    pub fn set_icon(&mut self, icon: Option<Image>) { self.0.set_icon(icon); }
 
     /// Returns a menu item icon.
-    fn icon(&self) -> Option<&Image> { self.0.icon() }
+    pub fn icon(&self) -> Option<&Image> { self.0.icon() }
 }
 
 impl Wrapper<MenuItemImpl> for MenuItem {
