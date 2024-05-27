@@ -17,6 +17,7 @@ pub(crate) trait WindowApi {
     fn options(&self) -> WindowOptions;
 
     fn show(&mut self, app: &ActiveApplication);
+    fn show_modal(&mut self, app: &ActiveApplication);
 
     fn toggle_fullscreen(&mut self);
     fn is_fullscreen(&self) -> bool;

@@ -29,8 +29,8 @@ If you want to make a **Pull Request** or open a new **Issue**, please, make sur
 
 - [x] **macOS:** Application menu support
 - [x] **macOS:** Support of system events
-- [ ] **macOS:** Support of windows
-- [ ] **macOS:** Support of modal windows
+- [x] **macOS:** Support of windows
+- [x] **macOS:** Support of modal windows
 - [ ] **macOS:** Support of notifications
 
 ## License

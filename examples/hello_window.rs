@@ -45,6 +45,12 @@ fn create_menu(ctx: &impl ContextOwner) -> Menu {
         .with_action(Action::new_event("new-window"))
         .build(ctx);
 
+    let new_modal_item = MenuItem::builder()
+        .with_title("New Modal Window")
+        .with_macos_short_code("m")
+        .with_action(Action::new_event("new-modal-window"))
+        .build(ctx);
+
     let close_all_item = MenuItem::builder()
         .with_title("Close All")
         .with_macos_short_code("k")
@@ -53,6 +59,8 @@ fn create_menu(ctx: &impl ContextOwner) -> Menu {
 
     let window_menu = Menu::builder()
         .with_item(new_window_item)
+        .with_item(new_modal_item)
+        .with_item(MenuItem::separator(ctx))
         .with_item(close_all_item)
         .build(ctx);
 
@@ -69,9 +77,10 @@ fn create_menu(ctx: &impl ContextOwner) -> Menu {
 }
 
 struct State {
-    menu:    Menu,
-    windows: HashMap<WindowId, Window>,
-    number:  u32,
+    menu:           Menu,
+    windows:        HashMap<WindowId, Window>,
+    window_counter: u32,
+    modal_counter:  u32,
 }
 
 impl State {
@@ -85,16 +94,26 @@ impl State {
         Self {
             menu,
             windows,
-            number: 1,
+            window_counter: 1,
+            modal_counter: 0,
         }
     }
 
     fn new_window(&mut self, app: &ActiveApplication) {
-        self.number += 1;
+        self.window_counter += 1;
         let mut window = Window::builder()
-            .with_title(format!("Window {}", self.number))
+            .with_title(format!("Window {}", self.window_counter))
             .build(app);
         window.show(app);
+        self.windows.insert(window.id(), window);
+    }
+
+    fn new_modal_window(&mut self, app: &ActiveApplication) {
+        self.modal_counter += 1;
+        let mut window = Window::builder()
+            .with_title(format!("Modal Window {}", self.modal_counter))
+            .build(app);
+        window.show_modal(app);
         self.windows.insert(window.id(), window);
     }
 
@@ -112,6 +131,7 @@ impl EventHandler for State {
         match event {
             Event::Menu(action) => match action.as_ref() {
                 "new-window" => self.new_window(app),
+                "new-modal-window" => self.new_modal_window(app),
                 "close-all" => self.close_all(),
                 "quit" => app.stop(),
                 _ => (),

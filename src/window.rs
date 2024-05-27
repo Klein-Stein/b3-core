@@ -27,7 +27,7 @@ pub struct WindowOptions {
 }
 
 /// Initial mode
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum InitMode {
     /// A regular window with a specified frame size.
     Default,
@@ -96,6 +96,12 @@ impl Window {
     /// # Parameters:
     /// * `app` - Active application.
     pub fn show(&mut self, app: &ActiveApplication) { self.0.show(app); }
+
+    /// Makes a window visible.
+    ///
+    /// # Parameters:
+    /// * `app` - Active application.
+    pub fn show_modal(&mut self, app: &ActiveApplication) { self.0.show_modal(app); }
 
     /// Toggles the fullscreen mode of the window.
     pub fn toggle_fullscreen(&mut self) { self.0.toggle_fullscreen(); }

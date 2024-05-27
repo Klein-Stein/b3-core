@@ -3,6 +3,7 @@ use objc2::{
     runtime::ProtocolObject,
 };
 use objc2_app_kit::{
+    NSApp,
     NSBackingStoreType,
     NSFullScreenWindowMask,
     NSWindow,
@@ -213,6 +214,27 @@ impl WindowApi for WindowImpl {
         self.native_on_main(|native| {
             native.makeKeyAndOrderFront(None);
         });
+
+        self.delegate_on_main(|delegate| {
+            delegate.set_app_delegate(app.get_impl().get_app_delegate().clone());
+            let window_id = delegate.window_id();
+            delegate.handle_event(Event::Window(WindowEvent::Show, window_id));
+        });
+
+        if self.init_mode == Some(InitMode::Fullscreen) {
+            self.native_on_main(|native| {
+                native.toggleFullScreen(None);
+            });
+            self.init_mode = None;
+        }
+    }
+
+    #[inline]
+    fn show_modal(&mut self, app: &ActiveApplication) {
+        let mtm = app.context().get_impl().mtm();
+        let ns_app = NSApp(mtm);
+        let ns_window = self.native.get(mtm);
+        unsafe { ns_app.runModalForWindow(ns_window) };
 
         self.delegate_on_main(|delegate| {
             delegate.set_app_delegate(app.get_impl().get_app_delegate().clone());
