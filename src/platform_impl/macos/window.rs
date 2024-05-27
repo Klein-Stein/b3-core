@@ -1,5 +1,9 @@
+use std::ptr::NonNull;
+
+#[cfg(feature = "dh")]
+use b3_display_handler::{appkit::AppKitWindowHandler, HasWindowHandler, WindowHandler};
 use objc2::{
-    rc::{autoreleasepool, Id},
+    rc::{autoreleasepool, Id, Retained},
     runtime::ProtocolObject,
 };
 use objc2_app_kit::{
@@ -11,9 +15,18 @@ use objc2_app_kit::{
     NSWindowStyleMask,
     NSWindowTitleVisibility,
 };
-use objc2_foundation::{CGFloat, CGPoint, CGRect, CGSize, MainThreadBound, NSRect, NSString};
+use objc2_foundation::{
+    CGFloat,
+    CGPoint,
+    CGRect,
+    CGSize,
+    MainThreadBound,
+    MainThreadMarker,
+    NSRect,
+    NSString,
+};
 
-use super::window_delegate::WindowDelegate;
+use super::{view::View, window_delegate::WindowDelegate};
 use crate::{
     platform::{WindowApi, Wrapper},
     ActiveApplication,
@@ -29,6 +42,7 @@ use crate::{
 
 #[derive(Debug)]
 pub(crate) struct WindowImpl {
+    mtm:       MainThreadMarker,
     delegate:  MainThreadBound<Id<WindowDelegate>>,
     native:    MainThreadBound<Id<NSWindow>>,
     init_mode: Option<InitMode>,
@@ -72,6 +86,8 @@ impl WindowImpl {
         self.delegate
             .get_on_main(|delegate| autoreleasepool(|_| f(delegate)))
     }
+
+    fn get_native(&self) -> &Retained<NSWindow> { self.native.get(self.mtm) }
 }
 
 impl WindowApi for WindowImpl {
@@ -116,6 +132,9 @@ impl WindowApi for WindowImpl {
             native.setDelegate(Some(object));
         });
 
+        let view = View::new(&native);
+        native.setContentView(Some(&view));
+
         if let Some(options) = &options {
             let title_visibility = if options.borderless {
                 NSWindowTitleVisibility::NSWindowTitleHidden
@@ -141,9 +160,10 @@ impl WindowApi for WindowImpl {
         }
 
         Self {
+            mtm,
             init_mode: Some(mode),
-            delegate:  MainThreadBound::new(delegate, mtm),
-            native:    MainThreadBound::new(native, mtm),
+            delegate: MainThreadBound::new(delegate, mtm),
+            native: MainThreadBound::new(native, mtm),
         }
     }
 
@@ -374,5 +394,16 @@ impl WindowApi for WindowImpl {
                 unsafe { native.deminiaturize(None) };
             }
         });
+    }
+}
+
+#[cfg(feature = "dh")]
+impl HasWindowHandler for WindowImpl {
+    fn window_handler(&self) -> WindowHandler {
+        let native = self.get_native();
+        let view = native.contentView().unwrap();
+        let ptr = Retained::as_ptr(&view) as *mut _;
+        let ptr = NonNull::new(ptr).expect("Retained<T> should never be null");
+        WindowHandler::AppKit(AppKitWindowHandler::new(ptr))
     }
 }

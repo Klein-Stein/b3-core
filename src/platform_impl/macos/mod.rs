@@ -8,6 +8,7 @@ mod notification;
 mod observers;
 mod panicinfo;
 mod runloop;
+mod view;
 mod window;
 mod window_delegate;
 

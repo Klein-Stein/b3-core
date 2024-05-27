@@ -1,3 +1,6 @@
+#[cfg(feature = "dh")]
+use b3_display_handler::{HasWindowHandler, WindowHandler};
+
 use crate::{
     platform::{WindowApi, Wrapper},
     platform_impl::WindowImpl,
@@ -176,6 +179,11 @@ impl Wrapper<WindowImpl> for Window {
 
     #[inline]
     fn get_impl_mut(&mut self) -> &mut WindowImpl { &mut self.0 }
+}
+
+#[cfg(feature = "dh")]
+impl HasWindowHandler for Window {
+    fn window_handler(&self) -> WindowHandler { self.0.window_handler() }
 }
 
 /// Window builder.

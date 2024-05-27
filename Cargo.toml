@@ -20,8 +20,9 @@ objc2-foundation = {version = "0.2.0", features = ["dispatch", "NSEnumerator", "
 objc2-user-notifications = {version = "0.2.2", optional = true, features = ["block2", "UNUserNotificationCenter", "UNNotificationRequest", "UNNotificationContent", "UNNotificationTrigger"]}
 
 [dependencies]
-b3-display-handler = {version = "0.1.0", optional = true}
+b3-display-handler = {version = "0.1.1", optional = true}
 
 [features]
+default = ["dh"]
 dh = ["dep:b3-display-handler"]
 notifications = ["dep:objc2-user-notifications"]
