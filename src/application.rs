@@ -1,8 +1,7 @@
 //! This module contains a platform independent Application implementation.
-
 use crate::{
-    macos::{ActiveApplicationImpl, ApplicationImpl, ContextImpl},
     platform::{ActiveApplicationApi, ApplicationApi, Wrapper},
+    platform_impl::{ActiveApplicationImpl, ApplicationImpl, ContextImpl},
     Error,
     EventHandler,
     Icon,

@@ -1,8 +1,8 @@
 //! This module contains a platform independent application menu implementation.
 
 use crate::{
-    macos::{MenuImpl, MenuItemImpl},
     platform::{MenuApi, MenuItemApi, Wrapper},
+    platform_impl::{MenuImpl, MenuItemImpl},
     ContextOwner,
     Icon,
 };

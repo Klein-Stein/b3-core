@@ -1,6 +1,6 @@
 use crate::{
-    macos::WindowImpl,
     platform::{WindowApi, Wrapper},
+    platform_impl::WindowImpl,
     ActiveApplication,
     ContextOwner,
     Point,

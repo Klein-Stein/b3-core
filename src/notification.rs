@@ -1,4 +1,4 @@
-use crate::{macos::NotificationImpl, platform::NotificationApi, ActiveApplication};
+use crate::{platform::NotificationApi, platform_impl::NotificationImpl, ActiveApplication};
 
 /// Notification builder.
 #[derive(Debug, Default)]

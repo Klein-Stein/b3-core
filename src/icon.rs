@@ -1,8 +1,8 @@
 //! This module contains image type definitions.
 
 use crate::{
-    macos::IconImpl,
     platform::{IconApi, Wrapper},
+    platform_impl::IconImpl,
     ContextOwner,
     Error,
 };

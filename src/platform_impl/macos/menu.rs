@@ -13,8 +13,8 @@ use objc2_app_kit::{NSEventModifierFlags, NSMenu, NSMenuItem};
 use objc2_foundation::{MainThreadBound, MainThreadMarker, NSObjectProtocol, NSString};
 
 use crate::{
-    macos::app_delegate::AppDelegate,
     platform::{MenuApi, MenuItemApi, Wrapper},
+    platform_impl::macos::app_delegate::AppDelegate,
     Action,
     ContextOwner,
     Event,

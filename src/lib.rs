@@ -7,11 +7,11 @@ mod errors;
 mod events;
 mod geometry;
 mod icon;
-mod macos;
 mod menu;
 #[cfg(feature = "notifications")]
 mod notification;
 mod platform;
+mod platform_impl;
 mod window;
 
 pub use application::*;
