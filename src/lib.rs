@@ -9,6 +9,8 @@ mod geometry;
 mod image;
 mod macos;
 mod menu;
+#[cfg(feature = "notifications")]
+mod notification;
 mod platform;
 mod window;
 
@@ -18,4 +20,6 @@ pub use events::*;
 pub use geometry::*;
 pub use image::*;
 pub use menu::*;
+#[cfg(feature = "notifications")]
+pub use notification::*;
 pub use window::*;

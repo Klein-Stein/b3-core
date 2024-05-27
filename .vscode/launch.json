@@ -68,7 +68,8 @@
                 "args": [
                     "build",
                     "--example=hello-window",
-                    "--package=b3-core"
+                    "--package=b3-core",
+                    "--features=notifications"
                 ],
                 "filter": {
                     "name": "hello-window",
@@ -87,7 +88,8 @@
                     "test",
                     "--no-run",
                     "--example=hello-window",
-                    "--package=b3-core"
+                    "--package=b3-core",
+                    "--features=notifications"
                 ],
                 "filter": {
                     "name": "hello-window",

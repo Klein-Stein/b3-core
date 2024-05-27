@@ -31,7 +31,14 @@ If you want to make a **Pull Request** or open a new **Issue**, please, make sur
 - [x] **macOS:** Support of system events
 - [x] **macOS:** Support of windows
 - [x] **macOS:** Support of modal windows
-- [ ] **macOS:** Support of notifications
+- [x] **macOS:** Support of notifications
+
+## Features
+
+| Feature         | Description                             |
+|:----------------|:----------------------------------------|
+| `dh`            | Provide raw display and window pointers |
+| `notifications` | Enable a support of user notifications  |
 
 ## License
 

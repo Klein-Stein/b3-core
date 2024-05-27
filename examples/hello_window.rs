@@ -11,6 +11,7 @@ use b3_core::{
     LifeCycle,
     Menu,
     MenuItem,
+    NotificationBuilder,
     Window,
     WindowEvent,
     WindowId,
@@ -64,15 +65,32 @@ fn create_menu(ctx: &impl ContextOwner) -> Menu {
         .with_item(close_all_item)
         .build(ctx);
 
+    // Notifications
+    let new_notification_item = MenuItem::builder()
+        .with_title("New Notification")
+        .with_macos_short_code("a")
+        .with_action(Action::new_event("new-notification"))
+        .build(ctx);
+
+    let notifications_menu = Menu::builder().with_item(new_notification_item).build(ctx);
+
     // Main menu
     let app_item = MenuItem::builder().with_submenu(app_menu).build(ctx);
+
     let window_item = MenuItem::builder()
         .with_title("Window")
         .with_submenu(window_menu)
         .build(ctx);
+
+    let notifications_item = MenuItem::builder()
+        .with_title("Notifications")
+        .with_submenu(notifications_menu)
+        .build(ctx);
+
     Menu::builder()
         .with_item(app_item)
         .with_item(window_item)
+        .with_item(notifications_item)
         .build(ctx)
 }
 
@@ -108,6 +126,13 @@ impl State {
         self.windows.insert(window.id(), window);
     }
 
+    fn new_notification(&mut self, app: &ActiveApplication) {
+        NotificationBuilder::new()
+            .with_title("B3-Core Notification")
+            .with_message("Notification body message")
+            .build(app);
+    }
+
     fn new_modal_window(&mut self, app: &ActiveApplication) {
         self.modal_counter += 1;
         let mut window = Window::builder()
@@ -132,6 +157,7 @@ impl EventHandler for State {
             Event::Menu(action) => match action.as_ref() {
                 "new-window" => self.new_window(app),
                 "new-modal-window" => self.new_modal_window(app),
+                "new-notification" => self.new_notification(app),
                 "close-all" => self.close_all(),
                 "quit" => app.stop(),
                 _ => (),

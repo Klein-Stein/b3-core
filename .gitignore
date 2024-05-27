@@ -1,4 +1,5 @@
 /target
+/.cargo
 
 # macOS
 .DS_Store

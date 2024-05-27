@@ -10,9 +10,18 @@ path = "examples/hello_app.rs"
 [[example]]
 name = "hello-window"
 path = "examples/hello_window.rs"
+required-features = ["notifications"]
 
 [target.'cfg(target_os = "macos")'.dependencies]
 core-foundation = "0.9.4"
 objc2 = "0.5.1"
 objc2-app-kit = {version = "0.2.0", features = ["NSApplication", "NSButton", "NSControl", "NSEvent", "NSGraphics", "NSImage", "NSGraphicsContext", "NSMenu", "NSMenuItem", "NSResponder", "NSRunningApplication", "NSView", "NSWindow"]}
-objc2-foundation = {version = "0.2.0", features = ["dispatch", "NSEnumerator", "NSNotification", "NSObject", "NSString", "NSThread"]}
+objc2-foundation = {version = "0.2.0", features = ["dispatch", "NSEnumerator", "NSNotification", "NSObject", "NSString", "NSThread", "NSUUID"]}
+objc2-user-notifications = {version = "0.2.2", optional = true, features = ["block2", "UNUserNotificationCenter", "UNNotificationRequest", "UNNotificationContent", "UNNotificationTrigger"]}
+
+[dependencies]
+b3-display-handler = {version = "0.1.0", optional = true}
+
+[features]
+dh = ["dep:b3-display-handler"]
+notifications = ["dep:objc2-user-notifications"]
