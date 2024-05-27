@@ -7,7 +7,8 @@ use b3_core::{
     ContextOwner,
     Event,
     EventHandler,
-    Image,
+    Icon,
+    IconType,
     LifeCycle,
     Menu,
     MenuItem,
@@ -21,7 +22,7 @@ fn create_menu(ctx: &impl ContextOwner) -> Menu {
     // App menu
     let settings_item = MenuItem::builder()
         .with_title("Preferences...")
-        .with_icon(Image::from_str(ctx, "gear").unwrap())
+        .with_icon(Icon::from_str(ctx, "gear").unwrap())
         .with_macos_short_code("P")
         .with_enabled(false) // Stub item
         .build(ctx);
@@ -163,6 +164,10 @@ impl EventHandler for State {
                 _ => (),
             },
             Event::LifeCycle(LifeCycle::Start) => {
+                let icon_data = include_bytes!("assets/gears.png").to_vec();
+                let app_icon = Icon::from_data(app, &icon_data, IconType::Png).unwrap();
+                app.set_icon(Some(&app_icon));
+
                 app.set_menu(Some(&self.menu));
 
                 for (_, window) in self.windows.iter_mut() {

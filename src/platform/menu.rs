@@ -1,4 +1,4 @@
-use crate::{Action, ContextOwner, Image, Menu, MenuItem, ShortCode};
+use crate::{Action, ContextOwner, Icon, Menu, MenuItem, ShortCode};
 
 pub(crate) trait MenuItemApi {
     fn new(ctx: &impl ContextOwner, separator: bool) -> Self;
@@ -24,8 +24,8 @@ pub(crate) trait MenuItemApi {
     fn set_tooltip(&mut self, tooltip: Option<String>);
     fn tooltip(&self) -> Option<String>;
 
-    fn set_icon(&mut self, icon: Option<Image>);
-    fn icon(&self) -> Option<&Image>;
+    fn set_icon(&mut self, icon: Option<Icon>);
+    fn icon(&self) -> Option<&Icon>;
 }
 
 pub(crate) trait MenuApi {

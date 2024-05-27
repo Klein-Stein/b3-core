@@ -23,6 +23,7 @@ use crate::{
     ContextOwner,
     Error,
     EventHandler,
+    Icon,
     Menu,
 };
 
@@ -99,6 +100,19 @@ impl ActiveApplicationApi for ActiveApplicationImpl {
             app.setMainMenu(Some(&menu.get_impl().get_native()));
         } else {
             app.setMainMenu(None);
+        }
+    }
+
+    #[inline]
+    fn set_icon(&mut self, icon: Option<&Icon>) {
+        let mtm = self.context.get_impl().mtm();
+        let app = NSApplication::sharedApplication(mtm);
+        match icon {
+            Some(icon) => {
+                let ns_image = icon.get_impl().get_native();
+                unsafe { app.setApplicationIconImage(Some(&ns_image)) };
+            }
+            None => unsafe { app.setApplicationIconImage(None) },
         }
     }
 

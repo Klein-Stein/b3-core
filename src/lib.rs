@@ -6,7 +6,7 @@ mod application;
 mod errors;
 mod events;
 mod geometry;
-mod image;
+mod icon;
 mod macos;
 mod menu;
 #[cfg(feature = "notifications")]
@@ -18,7 +18,7 @@ pub use application::*;
 pub use errors::*;
 pub use events::*;
 pub use geometry::*;
-pub use image::*;
+pub use icon::*;
 pub use menu::*;
 #[cfg(feature = "notifications")]
 pub use notification::*;

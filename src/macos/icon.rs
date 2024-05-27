@@ -3,35 +3,35 @@ use objc2_app_kit::NSImage;
 use objc2_foundation::{MainThreadBound, MainThreadMarker, NSData, NSString};
 
 use crate::{
-    platform::{ImageApi, Wrapper},
+    platform::{IconApi, Wrapper},
     ContextOwner,
     Error,
-    ImageType,
+    IconType,
 };
 
 #[derive(Debug)]
-pub(crate) struct ImageImpl {
+pub(crate) struct IconImpl {
     mtm:    MainThreadMarker,
     native: MainThreadBound<Id<NSImage>>,
 }
 
-impl ImageImpl {
+impl IconImpl {
     #[inline]
     pub(super) fn get_native(&self) -> &Id<NSImage> { self.native.get(self.mtm) }
 }
 
-impl ImageApi for ImageImpl {
+impl IconApi for IconImpl {
     #[inline]
     fn from_data(
         ctx: &impl ContextOwner,
-        image_data: &Vec<u8>,
-        _image_type: ImageType,
+        icon_data: &Vec<u8>,
+        _icon_type: IconType,
     ) -> Result<Self, Error> {
         autoreleasepool(|_| {
             let mtm = ctx.context().get_impl().mtm();
             let allocated = mtm.alloc();
 
-            let data = NSData::with_bytes(&image_data);
+            let data = NSData::with_bytes(&icon_data);
             match NSImage::initWithData(allocated, &data) {
                 Some(image) => Ok(Self {
                     mtm,

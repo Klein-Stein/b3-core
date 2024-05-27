@@ -1,7 +1,7 @@
 mod app_delegate;
 mod application;
 mod events;
-mod image;
+mod icon;
 mod menu;
 #[cfg(feature = "notifications")]
 mod notification;
@@ -12,7 +12,7 @@ mod window;
 mod window_delegate;
 
 pub(crate) use application::*;
-pub(crate) use image::*;
+pub(crate) use icon::*;
 pub(crate) use menu::*;
 #[cfg(feature = "notifications")]
 pub(crate) use notification::*;

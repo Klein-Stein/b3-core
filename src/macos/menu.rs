@@ -18,7 +18,7 @@ use crate::{
     Action,
     ContextOwner,
     Event,
-    Image,
+    Icon,
     Menu,
     MenuItem,
     ShortCode,
@@ -94,7 +94,7 @@ pub(crate) struct MenuItemImpl {
     short_code: ShortCode,
     native:     MainThreadBound<Id<CocoaMenuItem>>,
     submenu:    Option<Menu>,
-    icon:       Option<Image>,
+    icon:       Option<Icon>,
 }
 
 impl MenuItemImpl {
@@ -272,7 +272,7 @@ impl MenuItemApi for MenuItemImpl {
     }
 
     #[inline]
-    fn set_icon(&mut self, icon: Option<Image>) {
+    fn set_icon(&mut self, icon: Option<Icon>) {
         let ns_menu = self.get_native();
         if let Some(icon) = &icon {
             let ns_icon = icon.get_impl().get_native();
@@ -284,7 +284,7 @@ impl MenuItemApi for MenuItemImpl {
     }
 
     #[inline]
-    fn icon(&self) -> Option<&Image> { self.icon.as_ref() }
+    fn icon(&self) -> Option<&Icon> { self.icon.as_ref() }
 }
 
 #[derive(Debug)]

@@ -5,6 +5,7 @@ use crate::{
     platform::{ActiveApplicationApi, ApplicationApi, Wrapper},
     Error,
     EventHandler,
+    Icon,
     Menu,
 };
 
@@ -36,6 +37,12 @@ pub struct ActiveApplication(ActiveApplicationImpl);
 
 impl ActiveApplication {
     pub(crate) fn new(app_impl: ActiveApplicationImpl) -> Self { Self(app_impl) }
+
+    /// Sets an application icon.
+    ///
+    /// # Parameters:
+    /// * `icon` - Icon.
+    pub fn set_icon(&mut self, icon: Option<&Icon>) { self.0.set_icon(icon); }
 
     /// Sets an application menu.
     ///

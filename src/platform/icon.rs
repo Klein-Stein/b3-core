@@ -1,10 +1,10 @@
-use crate::{ContextOwner, Error, ImageType};
+use crate::{ContextOwner, Error, IconType};
 
-pub(crate) trait ImageApi {
+pub(crate) trait IconApi {
     fn from_data(
         ctx: &impl ContextOwner,
-        image_data: &Vec<u8>,
-        image_type: ImageType,
+        icon_data: &Vec<u8>,
+        icon_type: IconType,
     ) -> Result<Self, Error>
     where
         Self: Sized;

@@ -1,15 +1,15 @@
 //! This module contains image type definitions.
 
 use crate::{
-    macos::ImageImpl,
-    platform::{ImageApi, Wrapper},
+    macos::IconImpl,
+    platform::{IconApi, Wrapper},
     ContextOwner,
     Error,
 };
 
-/// Image types.
+/// Icon types.
 #[derive(Debug)]
-pub enum ImageType {
+pub enum IconType {
     /// GIF.
     Gif,
     /// JPEG.
@@ -20,23 +20,23 @@ pub enum ImageType {
     Tiff,
 }
 
-/// System image.
+/// System icon.
 #[derive(Debug)]
-pub struct Image(ImageImpl);
+pub struct Icon(IconImpl);
 
-impl Image {
-    /// Creates a new image from bytes.
+impl Icon {
+    /// Creates a new icon from bytes.
     ///
     /// # Parameters:
     /// * `ctx` - Context owner.
-    /// * `image_data` - Image data in bytes.
-    /// * `image_type` - Image type.
+    /// * `icon_data` - Icon data in bytes.
+    /// * `icon_type` - Icon type.
     pub fn from_data(
         ctx: &impl ContextOwner,
-        image_data: &Vec<u8>,
-        image_type: ImageType,
+        icon_data: &Vec<u8>,
+        icon_type: IconType,
     ) -> Result<Self, Error> {
-        Ok(Self(ImageImpl::from_data(ctx, image_data, image_type)?))
+        Ok(Self(IconImpl::from_data(ctx, icon_data, icon_type)?))
     }
 
     /// Creates a new image from built-in system icons.
@@ -48,14 +48,14 @@ impl Image {
     where
         S: Into<String>,
     {
-        Ok(Self(ImageImpl::from_str(ctx, &title.into())?))
+        Ok(Self(IconImpl::from_str(ctx, &title.into())?))
     }
 }
 
-impl Wrapper<ImageImpl> for Image {
+impl Wrapper<IconImpl> for Icon {
     #[inline]
-    fn get_impl(&self) -> &ImageImpl { &self.0 }
+    fn get_impl(&self) -> &IconImpl { &self.0 }
 
     #[inline]
-    fn get_impl_mut(&mut self) -> &mut ImageImpl { &mut self.0 }
+    fn get_impl_mut(&mut self) -> &mut IconImpl { &mut self.0 }
 }

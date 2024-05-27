@@ -4,7 +4,7 @@ use crate::{
     macos::{MenuImpl, MenuItemImpl},
     platform::{MenuApi, MenuItemApi, Wrapper},
     ContextOwner,
-    Image,
+    Icon,
 };
 
 /// Menu item action.
@@ -136,10 +136,10 @@ impl MenuItem {
     ///
     /// # Parameters:
     /// * `icon` - Menu item icon.
-    pub fn set_icon(&mut self, icon: Option<Image>) { self.0.set_icon(icon); }
+    pub fn set_icon(&mut self, icon: Option<Icon>) { self.0.set_icon(icon); }
 
     /// Returns a menu item icon.
-    pub fn icon(&self) -> Option<&Image> { self.0.icon() }
+    pub fn icon(&self) -> Option<&Icon> { self.0.icon() }
 }
 
 impl Wrapper<MenuItemImpl> for MenuItem {
@@ -158,7 +158,7 @@ pub struct MenuItemBuilder {
     submenu:    Option<Menu>,
     short_code: ShortCode,
     enabled:    Option<bool>,
-    icon:       Option<Image>,
+    icon:       Option<Icon>,
 }
 
 impl MenuItemBuilder {
@@ -223,7 +223,7 @@ impl MenuItemBuilder {
     ///
     /// # Parameters:
     /// * `icon` - Menu item icon.
-    pub fn with_icon(mut self, icon: Image) -> MenuItemBuilder {
+    pub fn with_icon(mut self, icon: Icon) -> MenuItemBuilder {
         self.icon = Some(icon);
         self
     }
