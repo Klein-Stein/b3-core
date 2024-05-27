@@ -12,6 +12,11 @@ name = "hello-window"
 path = "examples/hello_window.rs"
 required-features = ["notifications"]
 
+[[example]]
+name = "hello-vulkan"
+path = "examples/hello_vulkan.rs"
+required-features = ["dh"]
+
 [target.'cfg(target_os = "macos")'.dependencies]
 core-foundation = "0.9.4"
 objc2 = "0.5.1"
@@ -26,3 +31,7 @@ b3-display-handler = {version = "0.1.1", optional = true}
 default = ["dh"]
 dh = ["dep:b3-display-handler"]
 notifications = ["dep:objc2-user-notifications"]
+
+[dev-dependencies]
+# Required by `hello-vulkan` example.
+ash = "0.38.0"

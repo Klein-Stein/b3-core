@@ -98,6 +98,45 @@
             },
             "args": [],
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'hello-vulkan'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=hello-vulkan",
+                    "--package=b3-core",
+                    "--features=dh"
+                ],
+                "filter": {
+                    "name": "hello-vulkan",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'hello-vulkan'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=hello-vulkan",
+                    "--package=b3-core",
+                    "--features=dh"
+                ],
+                "filter": {
+                    "name": "hello-vulkan",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
         }
     ]
 }
