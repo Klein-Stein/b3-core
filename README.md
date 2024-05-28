@@ -3,7 +3,9 @@
 ![GitHub License](https://img.shields.io/github/license/Klein-Stein/b3-core)
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/Klein-Stein/b3-core/rust.yml)
 
-![Preview](images/preview.png)
+<p align="center">
+  <img src="images/preview.png" alt="Preview"/>
+</p>
 
 **B3. Core** is a cross-platform framework that provides access and management of the main elements of a graphical application:
 
