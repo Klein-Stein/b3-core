@@ -1,4 +1,4 @@
-use objc2::rc::{autoreleasepool, Id};
+use objc2::rc::Retained;
 use objc2_app_kit::NSImage;
 use objc2_foundation::{MainThreadBound, MainThreadMarker, NSData, NSString};
 
@@ -10,18 +10,12 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub(crate) struct IconImpl {
-    mtm:    MainThreadMarker,
-    native: MainThreadBound<Id<NSImage>>,
-}
+pub(crate) struct IconImpl(MainThreadBound<Retained<NSImage>>);
 
 impl IconImpl {
     #[inline]
-    pub(super) fn get_native(&self) -> &Id<NSImage> { self.native.get(self.mtm) }
+    pub(super) fn get_native(&self, mtm: MainThreadMarker) -> &Retained<NSImage> { self.0.get(mtm) }
 }
-
-unsafe impl Sync for IconImpl {}
-unsafe impl Send for IconImpl {}
 
 impl IconApi for IconImpl {
     #[inline]
@@ -30,36 +24,24 @@ impl IconApi for IconImpl {
         icon_data: &Vec<u8>,
         _icon_type: IconType,
     ) -> Result<Self, Error> {
-        autoreleasepool(|_| {
-            let mtm = ctx.context().get_impl().mtm();
-            let allocated = mtm.alloc();
+        let mtm = ctx.context().get_impl().mtm();
+        let allocated = mtm.alloc();
 
-            let data = NSData::with_bytes(&icon_data);
-            match NSImage::initWithData(allocated, &data) {
-                Some(image) => Ok(Self {
-                    mtm,
-                    native: MainThreadBound::new(image, mtm),
-                }),
-                None => Err(Error::new("NSImage not created.")),
-            }
-        })
+        let data = NSData::with_bytes(&icon_data);
+        match NSImage::initWithData(allocated, &data) {
+            Some(image) => Ok(Self(MainThreadBound::new(image, mtm))),
+            None => Err(Error::new("NSImage not created.")),
+        }
     }
 
     #[inline]
     fn from_str(ctx: &impl ContextOwner, title: &String) -> Result<Self, Error> {
-        autoreleasepool(|_| {
-            let mtm = ctx.context().get_impl().mtm();
+        let mtm = ctx.context().get_impl().mtm();
 
-            let name = NSString::from_str(title);
-            match unsafe {
-                NSImage::imageWithSystemSymbolName_accessibilityDescription(&name, None)
-            } {
-                Some(image) => Ok(Self {
-                    mtm,
-                    native: MainThreadBound::new(image, mtm),
-                }),
-                None => Err(Error::new("NSImage not created.")),
-            }
-        })
+        let name = NSString::from_str(title);
+        match unsafe { NSImage::imageWithSystemSymbolName_accessibilityDescription(&name, None) } {
+            Some(image) => Ok(Self(MainThreadBound::new(image, mtm))),
+            None => Err(Error::new("NSImage not created.")),
+        }
     }
 }

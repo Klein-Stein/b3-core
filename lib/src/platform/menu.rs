@@ -3,9 +3,7 @@ use crate::{Action, ContextOwner, Icon, Menu, MenuItem, ShortCode};
 pub(crate) trait MenuItemApi {
     fn new(ctx: &impl ContextOwner, separator: bool) -> Self;
 
-    fn set_title<S>(&mut self, title: S)
-    where
-        S: Into<String>;
+    fn set_title(&mut self, title: String);
     fn title(&self) -> String;
 
     fn set_action(&mut self, action: Option<Action>);

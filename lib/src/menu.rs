@@ -78,7 +78,7 @@ impl MenuItem {
     where
         S: Into<String>,
     {
-        self.0.set_title(title);
+        self.0.set_title(title.into());
     }
 
     /// Returns a menu item title.

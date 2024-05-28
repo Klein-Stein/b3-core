@@ -3,7 +3,7 @@ use std::ptr::NonNull;
 #[cfg(feature = "dh")]
 use b3_display_handler::{appkit::AppKitWindowHandler, HasWindowHandler, WindowHandler};
 use objc2::{
-    rc::{autoreleasepool, Id, Retained},
+    rc::{autoreleasepool, Retained},
     runtime::ProtocolObject,
 };
 use objc2_app_kit::{
@@ -42,9 +42,8 @@ use crate::{
 
 #[derive(Debug)]
 pub(crate) struct WindowImpl {
-    mtm:       MainThreadMarker,
-    delegate:  MainThreadBound<Id<WindowDelegate>>,
-    native:    MainThreadBound<Id<NSWindow>>,
+    delegate:  MainThreadBound<Retained<WindowDelegate>>,
+    native:    MainThreadBound<Retained<NSWindow>>,
     init_mode: Option<InitMode>,
 }
 
@@ -69,25 +68,26 @@ impl WindowImpl {
         NSWindowStyleMask(mask)
     }
 
+    #[inline]
     fn native_on_main<F, R>(&self, f: F) -> R
     where
-        F: Send + FnOnce(&Id<NSWindow>) -> R,
+        F: Send + FnOnce(&Retained<NSWindow>) -> R,
         R: Send,
     {
-        self.native
-            .get_on_main(|native| autoreleasepool(|_| f(native)))
+        self.native.get_on_main(f)
     }
 
+    #[inline]
     fn delegate_on_main<F, R>(&self, f: F) -> R
     where
-        F: Send + FnOnce(&Id<WindowDelegate>) -> R,
+        F: Send + FnOnce(&Retained<WindowDelegate>) -> R,
         R: Send,
     {
-        self.delegate
-            .get_on_main(|delegate| autoreleasepool(|_| f(delegate)))
+        self.delegate.get_on_main(f)
     }
 
-    fn get_native(&self) -> &Retained<NSWindow> { self.native.get(self.mtm) }
+    #[inline]
+    fn get_native(&self, mtm: MainThreadMarker) -> &Retained<NSWindow> { self.native.get(mtm) }
 }
 
 impl WindowApi for WindowImpl {
@@ -160,10 +160,9 @@ impl WindowApi for WindowImpl {
         }
 
         Self {
-            mtm,
             init_mode: Some(mode),
-            delegate: MainThreadBound::new(delegate, mtm),
-            native: MainThreadBound::new(native, mtm),
+            delegate:  MainThreadBound::new(delegate, mtm),
+            native:    MainThreadBound::new(native, mtm),
         }
     }
 
@@ -400,7 +399,9 @@ impl WindowApi for WindowImpl {
 #[cfg(feature = "dh")]
 impl HasWindowHandler for WindowImpl {
     fn window_handler(&self) -> WindowHandler {
-        let native = self.get_native();
+        let mtm =
+            MainThreadMarker::new().expect("window_handler() must be called on the main thread");
+        let native = self.get_native(mtm);
         let view = native.contentView().unwrap();
         let ptr = Retained::as_ptr(&view) as *mut _;
         let ptr = NonNull::new(ptr).expect("Retained<T> should never be null");

@@ -4,7 +4,7 @@ use std::{
 };
 
 use objc2::{
-    rc::{autoreleasepool, Id},
+    rc::{autoreleasepool, Retained},
     runtime::ProtocolObject,
 };
 use objc2_app_kit::{NSApp, NSApplication, NSApplicationActivationPolicy};
@@ -73,42 +73,51 @@ impl ContextImpl {
 #[derive(Debug)]
 pub(crate) struct ActiveApplicationImpl {
     context:  Context,
-    delegate: MainThreadBound<Id<AppDelegate>>,
+    delegate: MainThreadBound<Retained<AppDelegate>>,
 }
 
 impl ActiveApplicationImpl {
     #[inline]
-    fn new(mtm: MainThreadMarker, delegate: Id<AppDelegate>) -> Self {
+    fn new(mtm: MainThreadMarker, delegate: Retained<AppDelegate>) -> Self {
         Self {
             context:  Context::new(ContextImpl(mtm)),
             delegate: MainThreadBound::new(delegate, mtm),
         }
     }
 
-    pub(super) fn get_app_delegate(&self) -> &Id<AppDelegate> {
+    pub(super) fn get_app_delegate(&self) -> &Retained<AppDelegate> {
         let mtm = self.context.get_impl().mtm();
         self.delegate.get(mtm)
+    }
+
+    #[inline]
+    fn delegate_on_main<F, R>(&self, f: F) -> R
+    where
+        F: Send + FnOnce(&Retained<AppDelegate>) -> R,
+        R: Send,
+    {
+        self.delegate.get_on_main(|delegate| f(delegate))
     }
 }
 
 impl ActiveApplicationApi for ActiveApplicationImpl {
     #[inline]
     fn set_menu(&mut self, menu: Option<&Menu>) {
-        self.delegate.get_on_main(|delegate| {
+        self.delegate_on_main(|delegate| {
             delegate.set_menu(menu);
         });
     }
 
     #[inline]
     fn set_icon(&mut self, icon: Option<&Icon>) {
-        self.delegate.get_on_main(|delegate| {
+        self.delegate_on_main(|delegate| {
             delegate.set_icon(icon);
         });
     }
 
     #[inline]
     fn stop(&mut self) {
-        self.delegate.get_on_main(|delegate| {
+        self.delegate_on_main(|delegate| {
             delegate.stop();
         });
     }
@@ -144,7 +153,7 @@ impl ApplicationApi for ApplicationImpl {
         let ns_app = NSApp(mtm);
         ns_app.setActivationPolicy(NSApplicationActivationPolicy::Regular);
 
-        // configure the application delegate
+        // Configure the application delegate
         let delegate = AppDelegate::new(mtm, handler);
 
         let app = ActiveApplicationImpl::new(mtm, delegate.clone());

@@ -21,7 +21,7 @@ declare_class!(
         #[inherits(NSResponder, NSObject)]
         type Super = NSView;
         type Mutability = mutability::MainThreadOnly;
-        const NAME: &'static str = "B3View";
+        const NAME: &'static str = "CocoaView";
     }
 
     impl DeclaredClass for View {

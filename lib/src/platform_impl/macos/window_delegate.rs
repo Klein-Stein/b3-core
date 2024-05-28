@@ -4,7 +4,7 @@ use objc2::{
     declare_class,
     msg_send_id,
     mutability,
-    rc::Id,
+    rc::Retained,
     runtime::NSObjectProtocol,
     ClassType,
     DeclaredClass,
@@ -16,9 +16,9 @@ use super::app_delegate::AppDelegate;
 use crate::{Event, WindowEvent, WindowId};
 
 #[derive(Debug, Default)]
-pub(super) struct Ivars {
+pub(super) struct State {
     window_id:    Cell<Option<WindowId>>,
-    app_delegate: RefCell<Option<Id<AppDelegate>>>,
+    app_delegate: RefCell<Option<Retained<AppDelegate>>>,
 }
 
 declare_class!(
@@ -27,16 +27,16 @@ declare_class!(
 
     // SAFETY:
     // - The superclass NSObject does not have any subclassing requirements.
-    // - Main thread only mutability is correct, since this is an application delegate.
-    // - `AppDelegate` does not implement `Drop`.
+    // - Main thread only mutability is correct, since this is a window delegate.
+    // - `WindowDelegate` does not implement `Drop`.
     unsafe impl ClassType for WindowDelegate {
         type Super = NSObject;
         type Mutability = mutability::MainThreadOnly;
-        const NAME: &'static str = "B3WindowDelegate";
+        const NAME: &'static str = "CocoaWindowDelegate";
     }
 
     impl DeclaredClass for WindowDelegate {
-        type Ivars = Ivars;
+        type Ivars = State;
     }
 
     unsafe impl NSObjectProtocol for WindowDelegate {}
@@ -51,17 +51,16 @@ declare_class!(
 );
 
 impl WindowDelegate {
-    pub(super) fn new(mtm: MainThreadMarker) -> Id<WindowDelegate> {
+    pub(super) fn new(mtm: MainThreadMarker) -> Retained<WindowDelegate> {
         let this = mtm.alloc();
-        let this = this.set_ivars(Ivars {
+        let this = this.set_ivars(State {
             ..Default::default()
         });
         unsafe { msg_send_id![super(this), init] }
     }
 
-    pub(super) fn set_app_delegate(&self, app_delegate: Id<AppDelegate>) {
-        let mut delegate = self.ivars().app_delegate.borrow_mut();
-        *delegate = Some(app_delegate);
+    pub(super) fn set_app_delegate(&self, app_delegate: Retained<AppDelegate>) {
+        *self.ivars().app_delegate.borrow_mut() = Some(app_delegate);
     }
 
     #[inline]
@@ -73,6 +72,7 @@ impl WindowDelegate {
             .expect("window ID was not set.")
     }
 
+    #[inline]
     pub(super) fn set_window_id(&self, window_id: WindowId) {
         self.ivars().window_id.set(Some(window_id));
     }

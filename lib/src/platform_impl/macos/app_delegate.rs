@@ -10,11 +10,11 @@ use objc2::{
     declare_class,
     msg_send_id,
     mutability,
-    rc::{autoreleasepool, Id},
+    rc::{autoreleasepool, Retained},
     ClassType,
     DeclaredClass,
 };
-use objc2_app_kit::{NSApp, NSApplicationActivationPolicy, NSApplicationDelegate};
+use objc2_app_kit::{NSApp, NSApplication, NSApplicationActivationPolicy, NSApplicationDelegate};
 use objc2_foundation::{MainThreadMarker, NSNotification, NSObject, NSObjectProtocol};
 
 use super::panicinfo::PanicInfo;
@@ -27,7 +27,7 @@ impl Default for ActivationPolicy {
     fn default() -> Self { Self(NSApplicationActivationPolicy::Regular) }
 }
 
-pub(super) struct Ivars {
+pub(super) struct State {
     app: RefCell<Option<ActiveApplication>>,
     activation_policy: ActivationPolicy,
     activate_ignoring_other_apps: bool,
@@ -36,14 +36,16 @@ pub(super) struct Ivars {
     pending_events: RefCell<VecDeque<Event>>,
 }
 
-impl Debug for Ivars {
+impl Debug for State {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Ivars")
+        f.debug_struct("State")
             .field("activation_policy", &self.activation_policy)
             .field(
                 "activate_ignoring_other_apps",
                 &self.activate_ignoring_other_apps,
             )
+            .field("is_running", &self.is_running)
+            .field("pending_events", &self.pending_events)
             .finish()
     }
 }
@@ -63,7 +65,7 @@ declare_class!(
     }
 
     impl DeclaredClass for AppDelegate {
-        type Ivars = Ivars;
+        type Ivars = State;
     }
 
     unsafe impl NSObjectProtocol for AppDelegate {}
@@ -94,9 +96,12 @@ declare_class!(
 );
 
 impl AppDelegate {
-    pub(super) fn new(mtm: MainThreadMarker, handler: impl EventHandler + 'static) -> Id<Self> {
+    pub(super) fn new(
+        mtm: MainThreadMarker,
+        handler: impl EventHandler + 'static,
+    ) -> Retained<Self> {
         let this = mtm.alloc();
-        let this = this.set_ivars(Ivars {
+        let this = this.set_ivars(State {
             app: RefCell::new(None),
             activate_ignoring_other_apps: true,
             activation_policy: Default::default(),
@@ -107,26 +112,25 @@ impl AppDelegate {
         unsafe { msg_send_id![super(this), init] }
     }
 
-    pub(super) fn get(mtm: MainThreadMarker) -> Id<Self> {
+    pub(super) fn get(mtm: MainThreadMarker) -> Retained<Self> {
         let app = NSApp(mtm);
         let delegate =
             unsafe { app.delegate() }.expect("a delegate was not configured on the application");
         if delegate.is_kind_of::<Self>() {
             // SAFETY: Just checked that the delegate is an instance of `ApplicationDelegate`
-            unsafe { Id::cast(delegate) }
+            unsafe { Retained::cast(delegate) }
         } else {
             panic!("tried to get a delegate that was not the one Winit has registered")
         }
     }
 
     pub(super) fn set_active_application(&self, active_application: ActiveApplication) {
-        let mut app = self.ivars().app.borrow_mut();
-        *app = Some(active_application);
+        *self.ivars().app.borrow_mut() = Some(active_application);
     }
 
     pub(super) fn is_running(&self) -> bool { self.ivars().is_running.get() }
 
-    pub fn set_is_running(&self, value: bool) { self.ivars().is_running.set(value) }
+    pub(super) fn set_is_running(&self, value: bool) { self.ivars().is_running.set(value) }
 
     pub(super) fn wakeup(&self, _panic_info: Weak<PanicInfo>) {}
 
@@ -165,7 +169,7 @@ impl AppDelegate {
         let mtm = MainThreadMarker::from(self);
         let app = NSApp(mtm);
         if let Some(menu) = menu {
-            app.setMainMenu(Some(&menu.get_impl().get_native()));
+            app.setMainMenu(Some(&menu.get_impl().get_native(mtm)));
         } else {
             app.setMainMenu(None);
         }
@@ -173,22 +177,24 @@ impl AppDelegate {
 
     #[inline]
     pub(super) fn set_icon(&self, icon: Option<&Icon>) {
-        let mtm = MainThreadMarker::from(self);
-        let app = NSApp(mtm);
-        match icon {
-            Some(icon) => {
-                let ns_image = icon.get_impl().get_native();
-                unsafe { app.setApplicationIconImage(Some(&ns_image)) };
+        autoreleasepool(|_| {
+            let mtm = MainThreadMarker::from(self);
+            let app = NSApp(mtm);
+            match icon {
+                Some(icon) => {
+                    let ns_image = icon.get_impl().get_native(mtm);
+                    unsafe { app.setApplicationIconImage(Some(&ns_image)) };
+                }
+                None => unsafe { app.setApplicationIconImage(None) },
             }
-            None => unsafe { app.setApplicationIconImage(None) },
-        }
+        });
     }
 
     #[inline]
     pub(super) fn stop(&self) {
         autoreleasepool(|_| {
             let mtm = MainThreadMarker::from(self);
-            let app = NSApp(mtm);
+            let app = NSApplication::sharedApplication(mtm);
             app.stop(None);
         });
     }
