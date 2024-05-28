@@ -14,7 +14,7 @@ required-features = ["notifications"]
 
 [[example]]
 name = "hello-vulkan"
-path = "examples/hello_vulkan.rs"
+path = "examples/hello_vulkan/mod.rs"
 required-features = ["dh"]
 
 [target.'cfg(target_os = "macos")'.dependencies]
@@ -25,7 +25,7 @@ objc2-foundation = {version = "0.2.0", features = ["dispatch", "NSEnumerator", "
 objc2-user-notifications = {version = "0.2.2", optional = true, features = ["block2", "UNUserNotificationCenter", "UNNotificationRequest", "UNNotificationContent", "UNNotificationTrigger"]}
 
 [dependencies]
-b3-display-handler = {version = "0.1.1", optional = true}
+b3-display-handler = {version = "0.1.2", optional = true}
 
 [features]
 default = ["dh"]
@@ -35,3 +35,7 @@ notifications = ["dep:objc2-user-notifications"]
 [dev-dependencies]
 # Required by `hello-vulkan` example.
 ash = "0.38.0"
+
+[target.'cfg(any(target_os = "macos"))'.dev-dependencies]
+# Required by `hello-vulkan` example.
+raw-window-metal = "0.4"
