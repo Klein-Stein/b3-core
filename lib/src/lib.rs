@@ -15,6 +15,8 @@ mod platform_impl;
 mod window;
 
 pub use application::*;
+#[cfg(feature = "dh")]
+pub use b3_display_handler as dh;
 pub use errors::*;
 pub use events::*;
 pub use geometry::*;

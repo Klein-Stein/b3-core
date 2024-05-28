@@ -1,41 +1,8 @@
-[package]
-name = "b3-core"
-version = "0.1.0"
-edition = "2021"
-
-[[example]]
-name = "hello-app"
-path = "examples/hello_app.rs"
-
-[[example]]
-name = "hello-window"
-path = "examples/hello_window.rs"
-required-features = ["notifications"]
-
-[[example]]
-name = "hello-vulkan"
-path = "examples/hello_vulkan/mod.rs"
-required-features = ["dh"]
-
-[target.'cfg(target_os = "macos")'.dependencies]
-core-foundation = "0.9.4"
-objc2 = "0.5.1"
-objc2-app-kit = {version = "0.2.0", features = ["NSApplication", "NSButton", "NSControl", "NSEvent", "NSGraphics", "NSImage", "NSGraphicsContext", "NSMenu", "NSMenuItem", "NSResponder", "NSRunningApplication", "NSView", "NSWindow"]}
-objc2-foundation = {version = "0.2.0", features = ["dispatch", "NSEnumerator", "NSNotification", "NSObject", "NSString", "NSThread", "NSUUID"]}
-objc2-user-notifications = {version = "0.2.2", optional = true, features = ["block2", "UNUserNotificationCenter", "UNNotificationRequest", "UNNotificationContent", "UNNotificationTrigger"]}
-
-[dependencies]
-b3-display-handler = {version = "0.1.2", optional = true}
-
-[features]
-default = ["dh"]
-dh = ["dep:b3-display-handler"]
-notifications = ["dep:objc2-user-notifications"]
-
-[dev-dependencies]
-# Required by `hello-vulkan` example.
-ash = "0.38.0"
-
-[target.'cfg(any(target_os = "macos"))'.dev-dependencies]
-# Required by `hello-vulkan` example.
-raw-window-metal = "0.4"
+[workspace]
+members = [
+    "lib",
+    "examples/hello_app",
+    "examples/hello_vulkan",
+    "examples/hello_window",
+]
+resolver = "2"

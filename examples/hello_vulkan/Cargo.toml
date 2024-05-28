@@ -1,0 +1,13 @@
+[package]
+name = "hello-vulkan"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+b3-core = { path = "../../lib" }
+# Required by `hello-vulkan` example.
+ash = "0.38.0"
+
+[target.'cfg(any(target_os = "macos"))'.dependencies]
+# Required by `hello-vulkan` example.
+raw-window-metal = "0.4"

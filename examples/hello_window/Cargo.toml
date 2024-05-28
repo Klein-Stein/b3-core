@@ -1,0 +1,7 @@
+[package]
+name = "hello-window"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+b3-core = { path = "../../lib", features = ["notifications"]}

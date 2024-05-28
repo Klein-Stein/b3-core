@@ -30,12 +30,11 @@
             "cargo": {
                 "args": [
                     "build",
-                    "--example=hello-app",
-                    "--package=b3-core"
+                    "--package=hello-app"
                 ],
                 "filter": {
                     "name": "hello-app",
-                    "kind": "example"
+                    "kind": "bin"
                 }
             },
             "args": [],
@@ -49,12 +48,11 @@
                 "args": [
                     "test",
                     "--no-run",
-                    "--example=hello-app",
-                    "--package=b3-core"
+                    "--package=hello-app",
                 ],
                 "filter": {
                     "name": "hello-app",
-                    "kind": "example"
+                    "kind": "bin"
                 }
             },
             "args": [],
@@ -67,13 +65,11 @@
             "cargo": {
                 "args": [
                     "build",
-                    "--example=hello-window",
-                    "--package=b3-core",
-                    "--features=notifications"
+                    "--package=hello-window"
                 ],
                 "filter": {
                     "name": "hello-window",
-                    "kind": "example"
+                    "kind": "bin"
                 }
             },
             "args": [],
@@ -87,13 +83,11 @@
                 "args": [
                     "test",
                     "--no-run",
-                    "--example=hello-window",
-                    "--package=b3-core",
-                    "--features=notifications"
+                    "--package=hello-window"
                 ],
                 "filter": {
                     "name": "hello-window",
-                    "kind": "example"
+                    "kind": "bin"
                 }
             },
             "args": [],
@@ -106,13 +100,11 @@
             "cargo": {
                 "args": [
                     "build",
-                    "--example=hello-vulkan",
-                    "--package=b3-core",
-                    "--features=dh"
+                    "--package=hello-vulkan"
                 ],
                 "filter": {
                     "name": "hello-vulkan",
-                    "kind": "example"
+                    "kind": "bin"
                 }
             },
             "args": [],
@@ -127,13 +119,11 @@
                 "args": [
                     "test",
                     "--no-run",
-                    "--example=hello-vulkan",
-                    "--package=b3-core",
-                    "--features=dh"
+                    "--package=hello-vulkan"
                 ],
                 "filter": {
                     "name": "hello-vulkan",
-                    "kind": "example"
+                    "kind": "bin"
                 }
             },
             "args": [],

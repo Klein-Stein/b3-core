@@ -1,7 +1,7 @@
 use std::os::raw::c_char;
 
 use ash::{ext::metal_surface, khr::surface, prelude::VkResult, vk, Device, Entry, Instance};
-use b3_display_handler::WindowHandler;
+use b3_core::dh::WindowHandler;
 
 pub(crate) fn enumerate_required_extensions(
     window_handler: WindowHandler,

@@ -8,8 +8,7 @@ use ash::{
     Entry,
     Instance,
 };
-use b3_core::Window;
-use b3_display_handler::HasWindowHandler;
+use b3_core::{dh::HasWindowHandler, Window};
 
 use crate::helpers::{
     create_surface,
