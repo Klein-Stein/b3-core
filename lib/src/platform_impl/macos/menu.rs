@@ -307,6 +307,9 @@ impl MenuImpl {
     pub(super) fn get_native(&self) -> &Id<NSMenu> { self.native.get(self.mtm) }
 }
 
+unsafe impl Sync for Menu {}
+unsafe impl Send for Menu {}
+
 impl MenuApi for MenuImpl {
     #[inline]
     fn new(ctx: &impl ContextOwner, items: Vec<MenuItem>) -> Self {

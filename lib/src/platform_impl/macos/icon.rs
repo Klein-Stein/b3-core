@@ -20,6 +20,9 @@ impl IconImpl {
     pub(super) fn get_native(&self) -> &Id<NSImage> { self.native.get(self.mtm) }
 }
 
+unsafe impl Sync for IconImpl {}
+unsafe impl Send for IconImpl {}
+
 impl IconApi for IconImpl {
     #[inline]
     fn from_data(

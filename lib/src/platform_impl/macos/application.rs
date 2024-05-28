@@ -7,7 +7,7 @@ use objc2::{
     rc::{autoreleasepool, Id},
     runtime::ProtocolObject,
 };
-use objc2_app_kit::{NSApplication, NSApplicationActivationPolicy};
+use objc2_app_kit::{NSApp, NSApplication, NSApplicationActivationPolicy};
 use objc2_foundation::{MainThreadBound, MainThreadMarker};
 
 use super::{
@@ -94,34 +94,22 @@ impl ActiveApplicationImpl {
 impl ActiveApplicationApi for ActiveApplicationImpl {
     #[inline]
     fn set_menu(&mut self, menu: Option<&Menu>) {
-        let mtm = self.context.get_impl().mtm();
-        let app = NSApplication::sharedApplication(mtm);
-        if let Some(menu) = menu {
-            app.setMainMenu(Some(&menu.get_impl().get_native()));
-        } else {
-            app.setMainMenu(None);
-        }
+        self.delegate.get_on_main(|delegate| {
+            delegate.set_menu(menu);
+        });
     }
 
     #[inline]
     fn set_icon(&mut self, icon: Option<&Icon>) {
-        let mtm = self.context.get_impl().mtm();
-        let app = NSApplication::sharedApplication(mtm);
-        match icon {
-            Some(icon) => {
-                let ns_image = icon.get_impl().get_native();
-                unsafe { app.setApplicationIconImage(Some(&ns_image)) };
-            }
-            None => unsafe { app.setApplicationIconImage(None) },
-        }
+        self.delegate.get_on_main(|delegate| {
+            delegate.set_icon(icon);
+        });
     }
 
     #[inline]
     fn stop(&mut self) {
-        autoreleasepool(|_| {
-            let mtm = self.context.get_impl().mtm();
-            let app = NSApplication::sharedApplication(mtm);
-            app.stop(None);
+        self.delegate.get_on_main(|delegate| {
+            delegate.stop();
         });
     }
 }
@@ -153,7 +141,7 @@ impl ApplicationApi for ApplicationImpl {
     #[inline]
     fn run(&mut self, handler: impl EventHandler + 'static) {
         let mtm = self.context.get_impl().mtm();
-        let ns_app = NSApplication::sharedApplication(mtm);
+        let ns_app = NSApp(mtm);
         ns_app.setActivationPolicy(NSApplicationActivationPolicy::Regular);
 
         // configure the application delegate
@@ -172,7 +160,6 @@ impl ApplicationApi for ApplicationImpl {
         setup_control_flow_observers(Rc::downgrade(&panic_info));
 
         autoreleasepool(|_| {
-            // SAFETY: We do not run the application re-entrantly
             unsafe { ns_app.run() };
         });
     }

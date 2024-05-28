@@ -6,12 +6,19 @@ use std::{
     rc::Weak,
 };
 
-use objc2::{declare_class, msg_send_id, mutability, rc::Id, ClassType, DeclaredClass};
-use objc2_app_kit::{NSApplication, NSApplicationActivationPolicy, NSApplicationDelegate};
+use objc2::{
+    declare_class,
+    msg_send_id,
+    mutability,
+    rc::{autoreleasepool, Id},
+    ClassType,
+    DeclaredClass,
+};
+use objc2_app_kit::{NSApp, NSApplicationActivationPolicy, NSApplicationDelegate};
 use objc2_foundation::{MainThreadMarker, NSNotification, NSObject, NSObjectProtocol};
 
 use super::panicinfo::PanicInfo;
-use crate::{ActiveApplication, Event, EventHandler, LifeCycle};
+use crate::{platform::Wrapper, ActiveApplication, Event, EventHandler, Icon, LifeCycle, Menu};
 
 #[derive(Debug)]
 pub(super) struct ActivationPolicy(NSApplicationActivationPolicy);
@@ -65,7 +72,7 @@ declare_class!(
         #[method(applicationDidFinishLaunching:)]
         fn did_finish_launching(&self, _notification: &NSNotification) {
             let mtm = MainThreadMarker::from(self);
-            let app = NSApplication::sharedApplication(mtm);
+            let app = NSApp(mtm);
             // We need to delay setting the activation policy and activating the app
             // until `applicationDidFinishLaunching` has been called. Otherwise the
             // menu bar is initially unresponsive on macOS 10.15.
@@ -101,7 +108,7 @@ impl AppDelegate {
     }
 
     pub(super) fn get(mtm: MainThreadMarker) -> Id<Self> {
-        let app = NSApplication::sharedApplication(mtm);
+        let app = NSApp(mtm);
         let delegate =
             unsafe { app.delegate() }.expect("a delegate was not configured on the application");
         if delegate.is_kind_of::<Self>() {
@@ -151,5 +158,38 @@ impl AppDelegate {
         if let Some(app) = app.as_mut() {
             self.ivars().handler.borrow_mut().on_event(app, event);
         }
+    }
+
+    #[inline]
+    pub(super) fn set_menu(&self, menu: Option<&Menu>) {
+        let mtm = MainThreadMarker::from(self);
+        let app = NSApp(mtm);
+        if let Some(menu) = menu {
+            app.setMainMenu(Some(&menu.get_impl().get_native()));
+        } else {
+            app.setMainMenu(None);
+        }
+    }
+
+    #[inline]
+    pub(super) fn set_icon(&self, icon: Option<&Icon>) {
+        let mtm = MainThreadMarker::from(self);
+        let app = NSApp(mtm);
+        match icon {
+            Some(icon) => {
+                let ns_image = icon.get_impl().get_native();
+                unsafe { app.setApplicationIconImage(Some(&ns_image)) };
+            }
+            None => unsafe { app.setApplicationIconImage(None) },
+        }
+    }
+
+    #[inline]
+    pub(super) fn stop(&self) {
+        autoreleasepool(|_| {
+            let mtm = MainThreadMarker::from(self);
+            let app = NSApp(mtm);
+            app.stop(None);
+        });
     }
 }
