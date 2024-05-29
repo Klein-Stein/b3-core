@@ -256,3 +256,7 @@ impl WindowBuilder {
         window
     }
 }
+
+impl Drop for Window {
+    fn drop(&mut self) { self.close(); }
+}

@@ -11,6 +11,7 @@ mod runloop;
 mod view;
 mod window;
 mod window_delegate;
+mod window_utils;
 
 pub(crate) use application::*;
 pub(crate) use icon::*;

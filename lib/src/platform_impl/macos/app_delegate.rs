@@ -32,7 +32,7 @@ pub(super) struct State {
     activation_policy: ActivationPolicy,
     activate_ignoring_other_apps: bool,
     is_running: Cell<bool>,
-    handler: RefCell<Box<dyn EventHandler>>,
+    handler: RefCell<Option<Box<dyn EventHandler>>>,
     pending_events: RefCell<VecDeque<Event>>,
 }
 
@@ -96,17 +96,14 @@ declare_class!(
 );
 
 impl AppDelegate {
-    pub(super) fn new(
-        mtm: MainThreadMarker,
-        handler: impl EventHandler + 'static,
-    ) -> Retained<Self> {
+    pub(super) fn new(mtm: MainThreadMarker) -> Retained<Self> {
         let this = mtm.alloc();
         let this = this.set_ivars(State {
             app: RefCell::new(None),
             activate_ignoring_other_apps: true,
             activation_policy: Default::default(),
             is_running: Cell::new(false),
-            handler: RefCell::new(Box::new(handler)),
+            handler: RefCell::new(None),
             pending_events: RefCell::new(VecDeque::new()),
         });
         unsafe { msg_send_id![super(this), init] }
@@ -124,12 +121,20 @@ impl AppDelegate {
         }
     }
 
+    #[inline]
     pub(super) fn set_active_application(&self, active_application: ActiveApplication) {
         *self.ivars().app.borrow_mut() = Some(active_application);
     }
 
+    #[inline]
+    pub(super) fn set_handler(&self, handler: impl EventHandler + 'static) {
+        *self.ivars().handler.borrow_mut() = Some(Box::new(handler));
+    }
+
+    #[inline]
     pub(super) fn is_running(&self) -> bool { self.ivars().is_running.get() }
 
+    #[inline]
     pub(super) fn set_is_running(&self, value: bool) { self.ivars().is_running.set(value) }
 
     pub(super) fn wakeup(&self, _panic_info: Weak<PanicInfo>) {}
@@ -152,6 +157,7 @@ impl AppDelegate {
         }
     }
 
+    #[inline]
     pub(super) fn queue_event(&self, event: Event) {
         self.ivars().pending_events.borrow_mut().push_back(event);
     }
@@ -160,7 +166,11 @@ impl AppDelegate {
         let mut app = self.ivars().app.borrow_mut();
 
         if let Some(app) = app.as_mut() {
-            self.ivars().handler.borrow_mut().on_event(app, event);
+            let mut handler = self.ivars().handler.borrow_mut();
+
+            if let Some(handler) = handler.as_mut() {
+                handler.on_event(app, event);
+            }
         }
     }
 

@@ -8,7 +8,7 @@ use objc2::{
     runtime::ProtocolObject,
 };
 use objc2_app_kit::{NSApp, NSApplication, NSApplicationActivationPolicy};
-use objc2_foundation::{MainThreadBound, MainThreadMarker};
+use objc2_foundation::MainThreadMarker;
 
 use super::{
     app_delegate::AppDelegate,
@@ -62,74 +62,50 @@ pub fn stop_app_on_panic<F: FnOnce() -> R + UnwindSafe, R>(
     }
 }
 
-#[derive(Debug)]
-pub(crate) struct ContextImpl(MainThreadMarker);
+#[derive(Debug, Clone)]
+pub(crate) struct ContextImpl {
+    mtm:      MainThreadMarker,
+    delegate: Retained<AppDelegate>,
+}
 
 impl ContextImpl {
     #[inline]
-    pub(super) fn mtm(&self) -> MainThreadMarker { self.0 }
+    pub(super) fn mtm(&self) -> MainThreadMarker { self.mtm }
+
+    #[inline]
+    pub(super) fn app_delegate(&self) -> &Retained<AppDelegate> { &self.delegate }
 }
 
 #[derive(Debug)]
-pub(crate) struct ActiveApplicationImpl {
-    context:  Context,
-    delegate: MainThreadBound<Retained<AppDelegate>>,
-}
+pub(crate) struct ActiveApplicationImpl(Context);
 
 impl ActiveApplicationImpl {
     #[inline]
-    fn new(mtm: MainThreadMarker, delegate: Retained<AppDelegate>) -> Self {
-        Self {
-            context:  Context::new(ContextImpl(mtm)),
-            delegate: MainThreadBound::new(delegate, mtm),
-        }
-    }
-
-    pub(super) fn get_app_delegate(&self) -> &Retained<AppDelegate> {
-        let mtm = self.context.get_impl().mtm();
-        self.delegate.get(mtm)
-    }
+    fn new(context: Context) -> Self { Self(context) }
 
     #[inline]
-    fn delegate_on_main<F, R>(&self, f: F) -> R
-    where
-        F: Send + FnOnce(&Retained<AppDelegate>) -> R,
-        R: Send,
-    {
-        self.delegate.get_on_main(|delegate| f(delegate))
-    }
+    fn delegate(&self) -> &Retained<AppDelegate> { self.0.get_impl().app_delegate() }
 }
 
 impl ActiveApplicationApi for ActiveApplicationImpl {
     #[inline]
-    fn set_menu(&mut self, menu: Option<&Menu>) {
-        self.delegate_on_main(|delegate| {
-            delegate.set_menu(menu);
-        });
-    }
+    fn set_menu(&mut self, menu: Option<&Menu>) { self.delegate().set_menu(menu); }
 
     #[inline]
-    fn set_icon(&mut self, icon: Option<&Icon>) {
-        self.delegate_on_main(|delegate| {
-            delegate.set_icon(icon);
-        });
-    }
+    fn set_icon(&mut self, icon: Option<&Icon>) { self.delegate().set_icon(icon); }
 
     #[inline]
-    fn stop(&mut self) {
-        self.delegate_on_main(|delegate| {
-            delegate.stop();
-        });
-    }
+    fn stop(&mut self) { self.delegate().stop(); }
 }
 
 impl ContextOwner for ActiveApplicationImpl {
     #[inline]
-    fn context(&self) -> &Context { &self.context }
+    fn context(&self) -> &Context { &self.0 }
 }
 
 #[derive(Debug)]
 pub(crate) struct ApplicationImpl {
+    native:  Retained<NSApplication>,
     context: Context,
 }
 
@@ -137,8 +113,32 @@ impl ApplicationApi for ApplicationImpl {
     #[inline]
     fn new() -> Result<Self, Error> {
         if let Some(mtm) = MainThreadMarker::new() {
+            // Configure the application delegate
+            let delegate = AppDelegate::new(mtm);
+
+            // Initialize a new application.
+            let app = NSApp(mtm);
+
+            // Configure the application context
+            let context = Context::new(ContextImpl {
+                mtm,
+                delegate: delegate.clone(),
+            });
+
+            // Configure the active application
+            let active_app = ActiveApplicationImpl::new(context.clone());
+            let active_app = ActiveApplication::new(active_app);
+            delegate.set_active_application(active_app);
+
+            // Set the application delegate
+            autoreleasepool(|_| {
+                let object = ProtocolObject::from_ref(&*delegate);
+                app.setDelegate(Some(object));
+            });
+
             Ok(Self {
-                context: Context::new(ContextImpl(mtm)),
+                native: app,
+                context,
             })
         } else {
             Err(Error::new(
@@ -149,27 +149,17 @@ impl ApplicationApi for ApplicationImpl {
 
     #[inline]
     fn run(&mut self, handler: impl EventHandler + 'static) {
-        let mtm = self.context.get_impl().mtm();
-        let ns_app = NSApp(mtm);
-        ns_app.setActivationPolicy(NSApplicationActivationPolicy::Regular);
-
-        // Configure the application delegate
-        let delegate = AppDelegate::new(mtm, handler);
-
-        let app = ActiveApplicationImpl::new(mtm, delegate.clone());
-        let app = ActiveApplication::new(app);
-        delegate.set_active_application(app);
-
-        autoreleasepool(|_| {
-            let object = ProtocolObject::from_ref(&*delegate);
-            ns_app.setDelegate(Some(object));
-        });
+        // Register an event handler
+        self.context.get_impl().app_delegate().set_handler(handler);
+        // Set an activation policy
+        self.native
+            .setActivationPolicy(NSApplicationActivationPolicy::Regular);
 
         let panic_info: Rc<PanicInfo> = Default::default();
         setup_control_flow_observers(Rc::downgrade(&panic_info));
 
         autoreleasepool(|_| {
-            unsafe { ns_app.run() };
+            unsafe { self.native.run() };
         });
     }
 }

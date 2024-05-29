@@ -9,7 +9,7 @@ use crate::{
 };
 
 /// Native context.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Context(ContextImpl);
 
 impl Context {
