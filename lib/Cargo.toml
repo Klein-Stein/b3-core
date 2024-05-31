@@ -2,6 +2,15 @@
 name = "b3-core"
 version = "0.1.0"
 edition = "2021"
+description = "A cross-platform framework that provides access and management of the main elements of a graphical application."
+authors = ["Denis Sologub <ds.sologub@ya.ru>"]
+license-file = "LICENSE"
+repository = "https://github.com/Klein-Stein/b3-core"
+homepage = "https://github.com/Klein-Stein/b3-core"
+readme = "README.md"
+keywords = ["b3", "windowing"]
+categories = ["gui", "game-development"]
+documentation = "https://docs.rs/crate/b3-core/latest"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 core-foundation = "0.9.4"
