@@ -1,7 +1,9 @@
 # B3. Core
 
-![GitHub License](https://img.shields.io/github/license/Klein-Stein/b3-core)
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/Klein-Stein/b3-core/rust.yml)
+![Crates.io Version](https://img.shields.io/crates/v/b3-core?cacheSeconds=60&link=https%3A%2F%2Fcrates.io%2Fcrates%2Fb3-core)
+![docs.rs](https://img.shields.io/docsrs/b3-core?cacheSeconds=60&link=https%3A%2F%2Fdocs.rs%2Fcrate%2Fb3-core%2Flatest)
+![GitHub License](https://img.shields.io/github/license/Klein-Stein/b3-core?cacheSeconds=60&link=https%3A%2F%2Fgithub.com%2FKlein-Stein%2Fb3-core%2Fblob%2Fmaster%2FLICENSE)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/Klein-Stein/b3-core/rust.yml?cacheSeconds=60)
 
 <p align="center">
   <img src="images/preview.png" alt="Preview"/>
