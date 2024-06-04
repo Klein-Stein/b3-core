@@ -1,6 +1,6 @@
 [package]
 name = "b3-core"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "A cross-platform framework that provides access and management of the main elements of a graphical application."
 authors = ["Denis Sologub <ds.sologub@ya.ru>"]
@@ -11,6 +11,11 @@ readme = "../README.md"
 keywords = ["b3", "windowing"]
 categories = ["gui", "game-development"]
 documentation = "https://docs.rs/crate/b3-core/latest"
+
+[package.metadata.docs.rs]
+all-features = true
+default-target = "aarch64-apple-darwin"
+targets = ["x86_64-apple-darwin", "aarch64-apple-darwin"]
 
 [target.'cfg(target_os = "macos")'.dependencies]
 core-foundation = "0.9.4"
