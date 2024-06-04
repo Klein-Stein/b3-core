@@ -2,6 +2,7 @@ use std::ptr::NonNull;
 
 #[cfg(feature = "dh")]
 use b3_display_handler::{appkit::AppKitWindowHandler, HasWindowHandler, WindowHandler};
+use dpi::{PhysicalPosition, PhysicalSize, Position, Size};
 use objc2::{
     rc::{autoreleasepool, Retained},
     runtime::ProtocolObject,
@@ -16,14 +17,12 @@ use objc2_app_kit::{
 };
 use objc2_foundation::{CGPoint, CGSize, MainThreadBound, MainThreadMarker, NSRect};
 
-use super::{view::View, window_delegate::WindowDelegate};
+use super::{view::View, window_delegate::WindowDelegate, window_utils::to_cgsize};
 use crate::{
     platform::{WindowApi, Wrapper},
     ActiveApplication,
     ContextOwner,
     InitMode,
-    PhysicalSize,
-    Size,
     WindowId,
     WindowOptions,
 };
@@ -77,8 +76,8 @@ impl WindowApi for WindowImpl {
             .unwrap_or(1.0);
 
         let cgsize = match size {
-            Some(Size::Logical(size)) => size.into(),
-            Some(Size::Physical(size)) => size.to_logical::<f64>(scale_factor).into(),
+            Some(Size::Logical(size)) => to_cgsize(size),
+            Some(Size::Physical(size)) => to_cgsize(size.to_logical::<f64>(scale_factor)),
             None => CGSize::new(800.0, 600.0),
         };
 
@@ -199,14 +198,16 @@ impl WindowApi for WindowImpl {
     }
 
     #[inline]
-    fn set_position(&mut self, position: crate::Point) {
+    fn set_position(&mut self, position: Position) {
         self.delegate_on_main(|delegate| {
             delegate.set_position(position);
         });
     }
 
     #[inline]
-    fn position(&self) -> crate::Point { self.delegate_on_main(|delegate| delegate.position()) }
+    fn position(&self) -> PhysicalPosition<i32> {
+        self.delegate_on_main(|delegate| delegate.position())
+    }
 
     #[inline]
     fn set_min_size(&mut self, min_size: Size) {

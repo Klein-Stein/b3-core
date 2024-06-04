@@ -1,5 +1,6 @@
 use std::cell::Cell;
 
+use dpi::{LogicalPosition, LogicalSize, PhysicalPosition, PhysicalSize, Position, Size};
 use objc2::{
     declare_class,
     msg_send_id,
@@ -18,20 +19,13 @@ use objc2_app_kit::{
     NSWindowStyleMask,
     NSWindowTitleVisibility,
 };
-use objc2_foundation::{CGPoint, CGRect, MainThreadMarker, NSNotification, NSObject, NSString};
+use objc2_foundation::{CGRect, MainThreadMarker, NSNotification, NSObject, NSString};
 
-use super::app_delegate::AppDelegate;
-use crate::{
-    Event,
-    InitMode,
-    LogicalSize,
-    PhysicalSize,
-    Point,
-    Size,
-    WindowEvent,
-    WindowId,
-    WindowOptions,
+use super::{
+    app_delegate::AppDelegate,
+    window_utils::{to_cgpoint, to_cgsize},
 };
+use crate::{Event, InitMode, WindowEvent, WindowId, WindowOptions};
 
 #[derive(Debug)]
 pub(super) struct State {
@@ -207,13 +201,14 @@ impl WindowDelegate {
     pub(super) fn set_frame_size(&self, size: Size) {
         let window = self.window();
         let origin = window.frame().origin;
-        let size = match size {
-            Size::Logical(size) => size.into(),
+        let logical_size = match size {
+            Size::Logical(size) => size,
             Size::Physical(size) => {
                 let scale_factor = self.scale_factor();
-                size.to_logical::<f64>(scale_factor).into()
+                size.to_logical::<f64>(scale_factor)
             }
         };
+        let size = to_cgsize(logical_size);
         let frame = CGRect::new(origin, size);
         unsafe { window.setFrame_display_animate(frame, true, false) };
     }
@@ -226,26 +221,33 @@ impl WindowDelegate {
     }
 
     #[inline]
-    pub(super) fn set_position(&self, position: crate::Point) {
-        let origin = CGPoint::new(position.x as f64, position.y as f64);
+    pub(super) fn set_position(&self, position: Position) {
+        let scale_factor = self.scale_factor();
+        let logical_position = match position {
+            Position::Physical(position) => position.to_logical(scale_factor),
+            Position::Logical(position) => position,
+        };
+        let origin = to_cgpoint(logical_position);
         unsafe { self.window().setFrameOrigin(origin) };
     }
 
     #[inline]
-    pub(super) fn position(&self) -> crate::Point {
-        let raw_origin = self.window().frame().origin;
-        Point::new(raw_origin.x as i32, raw_origin.y as i32)
+    pub(super) fn position(&self) -> PhysicalPosition<i32> {
+        let origin = self.window().frame().origin;
+        let scale_factor = self.scale_factor();
+        LogicalPosition::new(origin.x, origin.y).to_physical(scale_factor)
     }
 
     #[inline]
     pub(super) fn set_min_size(&self, min_size: Size) {
-        let size = match min_size {
-            Size::Logical(size) => size.into(),
+        let logical_size = match min_size {
+            Size::Logical(size) => size,
             Size::Physical(size) => {
                 let scale_factor = self.scale_factor();
-                size.to_logical::<f64>(scale_factor).into()
+                size.to_logical::<f64>(scale_factor)
             }
         };
+        let size = to_cgsize(logical_size);
         self.window().setMinSize(size);
     }
 
@@ -258,13 +260,14 @@ impl WindowDelegate {
 
     #[inline]
     pub(super) fn set_max_size(&self, max_size: Size) {
-        let size = match max_size {
-            Size::Logical(size) => size.into(),
+        let logical_size = match max_size {
+            Size::Logical(size) => size,
             Size::Physical(size) => {
                 let scale_factor = self.scale_factor();
-                size.to_logical::<f64>(scale_factor).into()
+                size.to_logical::<f64>(scale_factor)
             }
         };
+        let size = to_cgsize(logical_size);
         self.window().setMaxSize(size);
     }
 

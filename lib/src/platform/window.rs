@@ -1,13 +1,6 @@
-use crate::{
-    ActiveApplication,
-    ContextOwner,
-    InitMode,
-    PhysicalSize,
-    Point,
-    Size,
-    WindowId,
-    WindowOptions,
-};
+use dpi::{PhysicalPosition, PhysicalSize, Position, Size};
+
+use crate::{ActiveApplication, ContextOwner, InitMode, WindowId, WindowOptions};
 
 pub(crate) trait WindowApi {
     fn new(
@@ -34,8 +27,8 @@ pub(crate) trait WindowApi {
     fn set_frame_size(&mut self, size: Size);
     fn frame_size(&self) -> PhysicalSize<u32>;
 
-    fn set_position(&mut self, position: Point);
-    fn position(&self) -> Point;
+    fn set_position(&mut self, position: Position);
+    fn position(&self) -> PhysicalPosition<i32>;
 
     fn set_min_size(&mut self, min_size: Size);
     fn min_size(&self) -> PhysicalSize<u32>;

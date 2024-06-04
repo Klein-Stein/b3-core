@@ -3,7 +3,6 @@
 #![warn(missing_docs)]
 
 mod application;
-mod dpi;
 mod errors;
 mod events;
 mod icon;
@@ -16,8 +15,10 @@ mod window;
 
 pub use application::*;
 #[cfg(feature = "dh")]
+#[doc(inline)]
 pub use b3_display_handler as dh;
-pub use dpi::*;
+#[doc(inline)]
+pub use dpi;
 pub use errors::*;
 pub use events::*;
 pub use icon::*;

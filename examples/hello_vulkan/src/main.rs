@@ -19,7 +19,6 @@ use b3_core::{
     LifeCycle,
     Menu,
     MenuItem,
-    Size,
     Window,
 };
 use helpers::record_submit_commandbuffer;
@@ -57,10 +56,9 @@ struct State {
 impl State {
     unsafe fn new(ctx: &impl ContextOwner) -> Self {
         let menu = create_menu(ctx);
-        let size = Size::new_logical(1024, 800);
         let window = Window::builder()
             .with_title("Hello, Vulkan!")
-            .with_size(size.clone())
+            .with_logical_size((1024, 800))
             .build(ctx);
 
         let base = Base::new(&window);

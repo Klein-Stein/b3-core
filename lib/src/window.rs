@@ -1,15 +1,12 @@
 #[cfg(feature = "dh")]
 use b3_display_handler::{HasWindowHandler, WindowHandler};
+use dpi::{LogicalSize, PhysicalPosition, PhysicalSize, Position, Size};
 
 use crate::{
     platform::{WindowApi, Wrapper},
     platform_impl::WindowImpl,
     ActiveApplication,
     ContextOwner,
-    LogicalSize,
-    PhysicalSize,
-    Point,
-    Size,
 };
 
 /// Window options.
@@ -127,10 +124,10 @@ impl Window {
     ///
     /// # Parameters:
     /// * `position` - Origin position.
-    pub fn set_position(&mut self, position: Point) { self.0.set_position(position); }
+    pub fn set_position(&mut self, position: Position) { self.0.set_position(position); }
 
     /// Returns a window origin position.
-    pub fn position(&self) -> Point { self.0.position() }
+    pub fn position(&self) -> PhysicalPosition<i32> { self.0.position() }
 
     /// Sets a minimal size of the window frame.
     ///

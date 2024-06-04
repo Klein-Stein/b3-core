@@ -13,10 +13,11 @@ dependencies = [
 
 [[package]]
 name = "b3-core"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "b3-display-handler",
  "core-foundation",
+ "dpi",
  "objc2",
  "objc2-app-kit",
  "objc2-foundation",
@@ -137,6 +138,12 @@ name = "dispatch"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bd0c93bb4b0c6d9b77f4435b0ae98c24d17f1c45b2ff844c6151a07256ca923b"
+
+[[package]]
+name = "dpi"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f25c0e292a7ca6d6498557ff1df68f32c99850012b6ea401cf8daf771f22ff53"
 
 [[package]]
 name = "foreign-types"

@@ -1,6 +1,6 @@
 [package]
 name = "b3-core"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2021"
 description = "A cross-platform framework that provides access and management of the main elements of a graphical application."
 authors = ["Denis Sologub <ds.sologub@ya.ru>"]
@@ -26,6 +26,7 @@ objc2-user-notifications = {version = "0.2.2", optional = true, features = ["blo
 
 [dependencies]
 b3-display-handler = {version = "0.1.2", optional = true}
+dpi = "0.1.1"
 
 [features]
 default = ["dh"]

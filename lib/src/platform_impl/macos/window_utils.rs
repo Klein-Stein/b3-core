@@ -1,7 +1,8 @@
+use dpi::{LogicalPosition, LogicalSize, Pixel};
 use objc2_app_kit::NSWindowStyleMask;
-use objc2_foundation::CGSize;
+use objc2_foundation::{CGPoint, CGSize};
 
-use crate::{LogicalSize, Pixel, WindowOptions};
+use crate::WindowOptions;
 
 impl Into<NSWindowStyleMask> for WindowOptions {
     fn into(self) -> NSWindowStyleMask {
@@ -25,6 +26,12 @@ impl Into<NSWindowStyleMask> for WindowOptions {
     }
 }
 
-impl<U: Pixel> Into<CGSize> for LogicalSize<U> {
-    fn into(self) -> CGSize { CGSize::new(self.width.into(), self.height.into()) }
+#[inline]
+pub(super) fn to_cgsize<P: Pixel>(size: LogicalSize<P>) -> CGSize {
+    CGSize::new(size.width.into(), size.height.into())
+}
+
+#[inline]
+pub(super) fn to_cgpoint<P: Pixel>(position: LogicalPosition<P>) -> CGPoint {
+    CGPoint::new(position.x.into(), position.y.into())
 }
