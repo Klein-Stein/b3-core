@@ -6,6 +6,8 @@ use crate::{
     platform_impl::WindowImpl,
     ActiveApplication,
     ContextOwner,
+    LogicalSize,
+    PhysicalSize,
     Point,
     Size,
 };
@@ -61,7 +63,7 @@ impl Window {
         ctx: &impl ContextOwner,
         mode: InitMode,
         options: Option<WindowOptions>,
-        size: Size,
+        size: Option<Size>,
     ) -> Self {
         let mut window = Self(WindowImpl::new(ctx, mode, options, size));
         window.0.init(window.id());
@@ -119,7 +121,7 @@ impl Window {
     pub fn set_frame_size(&mut self, size: Size) { self.0.set_frame_size(size); }
 
     /// Returns a frame size of the window.
-    pub fn frame_size(&self) -> Size { self.0.frame_size() }
+    pub fn frame_size(&self) -> PhysicalSize<u32> { self.0.frame_size() }
 
     /// Sets a window origin position.
     ///
@@ -137,7 +139,7 @@ impl Window {
     pub fn set_min_size(&mut self, min_size: Size) { self.0.set_min_size(min_size); }
 
     /// Returns a minimal size of the window frame.
-    pub fn min_size(&self) -> Size { self.0.min_size() }
+    pub fn min_size(&self) -> PhysicalSize<u32> { self.0.min_size() }
 
     /// Sets a maximal size of the window frame.
     ///
@@ -146,7 +148,7 @@ impl Window {
     pub fn set_max_size(&mut self, max_size: Size) { self.0.set_max_size(max_size); }
 
     /// Returns a maximal size of the window frame.
-    pub fn max_size(&self) -> Size { self.0.max_size() }
+    pub fn max_size(&self) -> PhysicalSize<u32> { self.0.max_size() }
 
     /// Switches a window into the maximized mode.
     pub fn maximize(&mut self) { self.0.maximize() }
@@ -155,7 +157,7 @@ impl Window {
     pub fn is_maximized(&self) -> bool { self.0.is_maximized() }
 
     /// Returns a content size (inner window size).
-    pub fn content_size(&self) -> Size { self.0.content_size() }
+    pub fn content_size(&self) -> PhysicalSize<u32> { self.0.content_size() }
 
     /// Checks if a window is visible on the screen.
     pub fn is_visible(&self) -> bool { self.0.is_visible() }
@@ -171,6 +173,9 @@ impl Window {
 
     /// De-minimizes window.
     pub fn restore(&mut self) { self.0.restore(); }
+
+    /// Window backing scale factor.
+    pub fn scale_factor(&self) -> f64 { self.0.scale_factor() }
 }
 
 impl Wrapper<WindowImpl> for Window {
@@ -192,7 +197,7 @@ pub struct WindowBuilder {
     title: Option<String>,
     mode:  InitMode,
     flags: Option<WindowOptions>,
-    size:  Size,
+    size:  Option<Size>,
 }
 
 impl WindowBuilder {
@@ -229,7 +234,31 @@ impl WindowBuilder {
     /// # Parameters:
     /// * `size` - Window frame size.
     pub fn with_size(mut self, size: Size) -> WindowBuilder {
-        self.size = size;
+        self.size = Some(size);
+        self
+    }
+
+    /// Sets a logical frame size of the window under building.
+    ///
+    /// # Parameters:
+    /// * `size` - Logical window frame size.
+    pub fn with_logical_size<S>(mut self, size: S) -> WindowBuilder
+    where
+        S: Into<LogicalSize<f64>>,
+    {
+        self.size = Some(Size::Logical(size.into()));
+        self
+    }
+
+    /// Sets a physical frame size of the window under building.
+    ///
+    /// # Parameters:
+    /// * `size` - Physical window frame size.
+    pub fn with_physical_size<S>(mut self, size: S) -> WindowBuilder
+    where
+        S: Into<PhysicalSize<u32>>,
+    {
+        self.size = Some(Size::Physical(size.into()));
         self
     }
 

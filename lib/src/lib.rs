@@ -3,9 +3,9 @@
 #![warn(missing_docs)]
 
 mod application;
+mod dpi;
 mod errors;
 mod events;
-mod geometry;
 mod icon;
 mod menu;
 #[cfg(feature = "notifications")]
@@ -17,9 +17,9 @@ mod window;
 pub use application::*;
 #[cfg(feature = "dh")]
 pub use b3_display_handler as dh;
+pub use dpi::*;
 pub use errors::*;
 pub use events::*;
-pub use geometry::*;
 pub use icon::*;
 pub use menu::*;
 #[cfg(feature = "notifications")]

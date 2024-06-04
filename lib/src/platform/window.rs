@@ -1,11 +1,20 @@
-use crate::{ActiveApplication, ContextOwner, InitMode, Point, Size, WindowId, WindowOptions};
+use crate::{
+    ActiveApplication,
+    ContextOwner,
+    InitMode,
+    PhysicalSize,
+    Point,
+    Size,
+    WindowId,
+    WindowOptions,
+};
 
 pub(crate) trait WindowApi {
     fn new(
         ctx: &impl ContextOwner,
         mode: InitMode,
         options: Option<WindowOptions>,
-        size: Size,
+        size: Option<Size>,
     ) -> Self;
 
     fn init(&mut self, window_id: WindowId);
@@ -23,21 +32,21 @@ pub(crate) trait WindowApi {
     fn is_fullscreen(&self) -> bool;
 
     fn set_frame_size(&mut self, size: Size);
-    fn frame_size(&self) -> Size;
+    fn frame_size(&self) -> PhysicalSize<u32>;
 
     fn set_position(&mut self, position: Point);
     fn position(&self) -> Point;
 
     fn set_min_size(&mut self, min_size: Size);
-    fn min_size(&self) -> Size;
+    fn min_size(&self) -> PhysicalSize<u32>;
 
     fn set_max_size(&mut self, max_size: Size);
-    fn max_size(&self) -> Size;
+    fn max_size(&self) -> PhysicalSize<u32>;
 
     fn maximize(&mut self);
     fn is_maximized(&self) -> bool;
 
-    fn content_size(&self) -> Size;
+    fn content_size(&self) -> PhysicalSize<u32>;
 
     fn is_visible(&self) -> bool;
 
@@ -47,4 +56,6 @@ pub(crate) trait WindowApi {
     fn is_minimized(&self) -> bool;
 
     fn restore(&mut self);
+
+    fn scale_factor(&self) -> f64;
 }

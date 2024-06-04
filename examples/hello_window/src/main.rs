@@ -106,7 +106,10 @@ impl State {
     fn new(ctx: &impl ContextOwner) -> Self {
         let menu = create_menu(ctx);
 
-        let window = Window::builder().with_title("Window 1").build(ctx);
+        let window = Window::builder()
+            .with_title("Window 1")
+            .with_physical_size((1920, 1280))
+            .build(ctx);
         let mut windows = HashMap::new();
         windows.insert(window.id(), window);
 
@@ -122,6 +125,7 @@ impl State {
         self.window_counter += 1;
         let mut window = Window::builder()
             .with_title(format!("Window {}", self.window_counter))
+            .with_physical_size((1920, 1280))
             .build(app);
         window.show(app);
         self.windows.insert(window.id(), window);

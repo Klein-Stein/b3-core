@@ -18,18 +18,20 @@ use objc2_app_kit::{
     NSWindowStyleMask,
     NSWindowTitleVisibility,
 };
-use objc2_foundation::{
-    CGPoint,
-    CGRect,
-    CGSize,
-    MainThreadMarker,
-    NSNotification,
-    NSObject,
-    NSString,
-};
+use objc2_foundation::{CGPoint, CGRect, MainThreadMarker, NSNotification, NSObject, NSString};
 
 use super::app_delegate::AppDelegate;
-use crate::{Event, InitMode, Point, Size, WindowEvent, WindowId, WindowOptions};
+use crate::{
+    Event,
+    InitMode,
+    LogicalSize,
+    PhysicalSize,
+    Point,
+    Size,
+    WindowEvent,
+    WindowId,
+    WindowOptions,
+};
 
 #[derive(Debug)]
 pub(super) struct State {
@@ -205,14 +207,22 @@ impl WindowDelegate {
     pub(super) fn set_frame_size(&self, size: Size) {
         let window = self.window();
         let origin = window.frame().origin;
-        let frame = CGRect::new(origin, CGSize::new(size.width as f64, size.height as f64));
+        let size = match size {
+            Size::Logical(size) => size.into(),
+            Size::Physical(size) => {
+                let scale_factor = self.scale_factor();
+                size.to_logical::<f64>(scale_factor).into()
+            }
+        };
+        let frame = CGRect::new(origin, size);
         unsafe { window.setFrame_display_animate(frame, true, false) };
     }
 
     #[inline]
-    pub(super) fn frame_size(&self) -> Size {
-        let raw_size = self.window().frame().size;
-        Size::new(raw_size.width as usize, raw_size.height as usize)
+    pub(super) fn frame_size(&self) -> PhysicalSize<u32> {
+        let size = self.window().frame().size;
+        let scale_factor = self.scale_factor();
+        LogicalSize::new(size.width, size.height).to_physical(scale_factor)
     }
 
     #[inline]
@@ -229,26 +239,40 @@ impl WindowDelegate {
 
     #[inline]
     pub(super) fn set_min_size(&self, min_size: Size) {
-        let size = CGSize::new(min_size.width as f64, min_size.height as f64);
+        let size = match min_size {
+            Size::Logical(size) => size.into(),
+            Size::Physical(size) => {
+                let scale_factor = self.scale_factor();
+                size.to_logical::<f64>(scale_factor).into()
+            }
+        };
         self.window().setMinSize(size);
     }
 
     #[inline]
-    pub(super) fn min_size(&self) -> Size {
+    pub(super) fn min_size(&self) -> PhysicalSize<u32> {
         let min_size = unsafe { self.window().minSize() };
-        Size::new(min_size.width as usize, min_size.height as usize)
+        let scale_factor = self.scale_factor();
+        LogicalSize::new(min_size.width, min_size.height).to_physical(scale_factor)
     }
 
     #[inline]
     pub(super) fn set_max_size(&self, max_size: Size) {
-        let size = CGSize::new(max_size.width as f64, max_size.height as f64);
+        let size = match max_size {
+            Size::Logical(size) => size.into(),
+            Size::Physical(size) => {
+                let scale_factor = self.scale_factor();
+                size.to_logical::<f64>(scale_factor).into()
+            }
+        };
         self.window().setMaxSize(size);
     }
 
     #[inline]
-    pub(super) fn max_size(&self) -> Size {
+    pub(super) fn max_size(&self) -> PhysicalSize<u32> {
         let max_size = unsafe { self.window().maxSize() };
-        Size::new(max_size.width as usize, max_size.height as usize)
+        let scale_factor = self.scale_factor();
+        LogicalSize::new(max_size.width, max_size.height).to_physical(scale_factor)
     }
 
     #[inline]
@@ -258,9 +282,10 @@ impl WindowDelegate {
     pub(super) fn is_maximized(&self) -> bool { self.window().isZoomed() }
 
     #[inline]
-    pub(super) fn content_size(&self) -> Size {
+    pub(super) fn content_size(&self) -> PhysicalSize<u32> {
         let size = unsafe { self.window().contentLayoutRect().size };
-        Size::new(size.width as usize, size.height as usize)
+        let scale_factor = self.scale_factor();
+        LogicalSize::new(size.width, size.height).to_physical(scale_factor)
     }
 
     #[inline]
@@ -281,4 +306,7 @@ impl WindowDelegate {
             unsafe { self.window().deminiaturize(None) };
         }
     }
+
+    #[inline]
+    pub(super) fn scale_factor(&self) -> f64 { self.window().backingScaleFactor() }
 }

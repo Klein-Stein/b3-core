@@ -8,12 +8,13 @@ use objc2::{
 };
 use objc2_app_kit::{
     NSBackingStoreType,
+    NSScreen,
     NSWindow,
     NSWindowButton,
     NSWindowStyleMask,
     NSWindowTitleVisibility,
 };
-use objc2_foundation::{CGFloat, CGPoint, CGSize, MainThreadBound, MainThreadMarker, NSRect};
+use objc2_foundation::{CGPoint, CGSize, MainThreadBound, MainThreadMarker, NSRect};
 
 use super::{view::View, window_delegate::WindowDelegate};
 use crate::{
@@ -21,6 +22,7 @@ use crate::{
     ActiveApplication,
     ContextOwner,
     InitMode,
+    PhysicalSize,
     Size,
     WindowId,
     WindowOptions,
@@ -52,7 +54,7 @@ impl WindowApi for WindowImpl {
         ctx: &impl ContextOwner,
         mode: InitMode,
         options: Option<WindowOptions>,
-        size: Size,
+        size: Option<Size>,
     ) -> Self {
         // Extract the application context
         let mtm = ctx.context().get_impl().mtm();
@@ -70,10 +72,17 @@ impl WindowApi for WindowImpl {
             )
         };
 
-        let content_rect = NSRect::new(
-            CGPoint::new(200.0, 200.0),
-            CGSize::new(size.width as CGFloat, size.height as CGFloat),
-        );
+        let scale_factor = NSScreen::mainScreen(mtm)
+            .map(|screen| screen.backingScaleFactor() as f64)
+            .unwrap_or(1.0);
+
+        let cgsize = match size {
+            Some(Size::Logical(size)) => size.into(),
+            Some(Size::Physical(size)) => size.to_logical::<f64>(scale_factor).into(),
+            None => CGSize::new(800.0, 600.0),
+        };
+
+        let content_rect = NSRect::new(CGPoint::new(200.0, 200.0), cgsize);
 
         let this = mtm.alloc();
         let window = unsafe {
@@ -185,7 +194,9 @@ impl WindowApi for WindowImpl {
     }
 
     #[inline]
-    fn frame_size(&self) -> Size { self.delegate_on_main(|delegate| delegate.frame_size()) }
+    fn frame_size(&self) -> PhysicalSize<u32> {
+        self.delegate_on_main(|delegate| delegate.frame_size())
+    }
 
     #[inline]
     fn set_position(&mut self, position: crate::Point) {
@@ -205,7 +216,9 @@ impl WindowApi for WindowImpl {
     }
 
     #[inline]
-    fn min_size(&self) -> Size { self.delegate_on_main(|delegate| delegate.min_size()) }
+    fn min_size(&self) -> PhysicalSize<u32> {
+        self.delegate_on_main(|delegate| delegate.min_size())
+    }
 
     #[inline]
     fn set_max_size(&mut self, max_size: Size) {
@@ -215,7 +228,9 @@ impl WindowApi for WindowImpl {
     }
 
     #[inline]
-    fn max_size(&self) -> Size { self.delegate_on_main(|delegate| delegate.max_size()) }
+    fn max_size(&self) -> PhysicalSize<u32> {
+        self.delegate_on_main(|delegate| delegate.max_size())
+    }
 
     #[inline]
     fn maximize(&mut self) {
@@ -228,7 +243,9 @@ impl WindowApi for WindowImpl {
     fn is_maximized(&self) -> bool { self.delegate_on_main(|delegate| delegate.is_maximized()) }
 
     #[inline]
-    fn content_size(&self) -> Size { self.delegate_on_main(|delegate| delegate.content_size()) }
+    fn content_size(&self) -> PhysicalSize<u32> {
+        self.delegate_on_main(|delegate| delegate.content_size())
+    }
 
     #[inline]
     fn is_visible(&self) -> bool { self.delegate_on_main(|delegate| delegate.is_visible()) }
@@ -256,6 +273,9 @@ impl WindowApi for WindowImpl {
             delegate.restore();
         });
     }
+
+    #[inline]
+    fn scale_factor(&self) -> f64 { self.delegate_on_main(|delegate| delegate.scale_factor()) }
 }
 
 #[cfg(feature = "dh")]

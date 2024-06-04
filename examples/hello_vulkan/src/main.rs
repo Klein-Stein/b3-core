@@ -57,7 +57,7 @@ struct State {
 impl State {
     unsafe fn new(ctx: &impl ContextOwner) -> Self {
         let menu = create_menu(ctx);
-        let size = Size::new(1024, 800);
+        let size = Size::new_logical(1024, 800);
         let window = Window::builder()
             .with_title("Hello, Vulkan!")
             .with_size(size.clone())

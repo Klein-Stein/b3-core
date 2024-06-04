@@ -1,6 +1,7 @@
 use objc2_app_kit::NSWindowStyleMask;
+use objc2_foundation::CGSize;
 
-use crate::WindowOptions;
+use crate::{LogicalSize, Pixel, WindowOptions};
 
 impl Into<NSWindowStyleMask> for WindowOptions {
     fn into(self) -> NSWindowStyleMask {
@@ -22,4 +23,8 @@ impl Into<NSWindowStyleMask> for WindowOptions {
         }
         NSWindowStyleMask(mask)
     }
+}
+
+impl<U: Pixel> Into<CGSize> for LogicalSize<U> {
+    fn into(self) -> CGSize { CGSize::new(self.width.into(), self.height.into()) }
 }
