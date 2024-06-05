@@ -1,6 +1,6 @@
 [package]
 name = "b3-core"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 description = "A cross-platform framework that provides access and management of the main elements of a graphical application."
 authors = ["Denis Sologub <ds.sologub@ya.ru>"]
