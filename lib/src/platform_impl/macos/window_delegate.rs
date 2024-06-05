@@ -24,21 +24,14 @@ use objc2_foundation::{CGRect, MainThreadMarker, NSNotification, NSObject, NSStr
 use super::{
     app_delegate::AppDelegate,
     window_utils::{to_b3_position, to_cgsize, to_macos_coords},
+    CocoaWindow,
 };
-use crate::{
-    platform_impl::macos::view::View,
-    Event,
-    InitMode,
-    WindowEvent,
-    WindowId,
-    WindowOptions,
-};
+use crate::{Event, InitMode, WindowEvent, WindowId, WindowOptions};
 
 #[derive(Debug)]
 pub(super) struct State {
-    window_id:     Cell<Option<WindowId>>,
     app_delegate:  Retained<AppDelegate>,
-    window:        Retained<NSWindow>,
+    window:        Retained<CocoaWindow>,
     init_mode:     Cell<Option<InitMode>>,
     prev_position: Cell<PhysicalPosition<i32>>,
 }
@@ -101,14 +94,13 @@ impl WindowDelegate {
     pub(super) fn new(
         mtm: MainThreadMarker,
         app_delegate: Retained<AppDelegate>,
-        window: Retained<NSWindow>,
+        window: Retained<CocoaWindow>,
         init_mode: InitMode,
     ) -> Retained<WindowDelegate> {
         let this = mtm.alloc();
         let scale_factor = window.backingScaleFactor();
         let origin = to_b3_position(&window);
         let this = this.set_ivars(State {
-            window_id: Cell::new(None),
             app_delegate,
             window,
             init_mode: Cell::new(Some(init_mode)),
@@ -137,25 +129,10 @@ impl WindowDelegate {
     fn app_delegate(&self) -> &AppDelegate { &self.ivars().app_delegate }
 
     #[inline]
-    fn window(&self) -> &NSWindow { &self.ivars().window }
+    fn window(&self) -> &CocoaWindow { &self.ivars().window }
 
     #[inline]
-    pub(super) fn window_id(&self) -> WindowId {
-        self.ivars()
-            .window_id
-            .clone()
-            .get()
-            .expect("window ID was not set.")
-    }
-
-    #[inline]
-    pub(super) fn set_window_id(&self, window_id: WindowId) {
-        self.ivars().window_id.set(Some(window_id));
-        if let Some(view) = self.window().contentView() {
-            let view: Retained<View> = unsafe { Retained::cast(view) };
-            view.set_window_id(window_id);
-        }
-    }
+    pub(super) fn window_id(&self) -> WindowId { self.window().id() }
 
     #[inline]
     pub(super) fn set_title(&self, title: String) {

@@ -1,5 +1,3 @@
-use std::cell::Cell;
-
 use dpi::LogicalSize;
 use objc2::{
     declare_class,
@@ -11,17 +9,16 @@ use objc2::{
     ClassType,
     DeclaredClass,
 };
-use objc2_app_kit::{NSEvent, NSResponder, NSView, NSViewFrameDidChangeNotification, NSWindow};
+use objc2_app_kit::{NSEvent, NSResponder, NSView, NSViewFrameDidChangeNotification};
 use objc2_foundation::{MainThreadMarker, NSNotificationCenter, NSObject, NSRect};
 
-use super::app_delegate::AppDelegate;
-use crate::{Event, WindowEvent, WindowId};
+use super::{app_delegate::AppDelegate, CocoaWindow};
+use crate::{Event, WindowEvent};
 
 #[derive(Debug)]
 pub(super) struct ViewState {
     app_delegate: Retained<AppDelegate>,
-    window_id:    Cell<Option<WindowId>>,
-    ns_window:    Weak<NSWindow>,
+    ns_window:    Weak<CocoaWindow>,
 }
 
 declare_class!(
@@ -52,8 +49,8 @@ declare_class!(
 
         #[method(drawRect:)]
         fn draw_rect(&self, _rect: NSRect) {
-            if let Some(window_id) = self.ivars().window_id.get() {
-                self.ivars().app_delegate.handle_redraw(window_id);
+            if let Some(window) = self.ivars().ns_window.load() {
+                self.ivars().app_delegate.handle_redraw(window.id());
             }
 
             // This is a direct subclass of NSView, no need to call superclass' drawRect:
@@ -64,12 +61,11 @@ declare_class!(
 impl View {
     pub(super) fn new(
         app_delegate: Retained<AppDelegate>,
-        ns_window: &Retained<NSWindow>,
+        ns_window: &Retained<CocoaWindow>,
     ) -> Retained<Self> {
         let mtm = MainThreadMarker::from(ns_window.as_ref());
         let this = mtm.alloc().set_ivars(ViewState {
             app_delegate,
-            window_id: Cell::new(None),
             ns_window: Weak::from_retained(ns_window),
         });
         let view: Retained<Self> = unsafe { msg_send_id![super(this), init] };
@@ -89,12 +85,7 @@ impl View {
     }
 
     #[inline]
-    pub(super) fn set_window_id(&self, window_id: WindowId) {
-        self.ivars().window_id.set(Some(window_id));
-    }
-
-    #[inline]
-    fn window(&self) -> Retained<NSWindow> {
+    fn window(&self) -> Retained<CocoaWindow> {
         // TODO: Simply use `window` property on `NSView`.
         // That only returns a window _after_ the view has been attached though!
         // (which is incompatible with `frameDidChange:`)
@@ -108,10 +99,10 @@ impl View {
     fn scale_factor(&self) -> f64 { self.window().backingScaleFactor() }
 
     fn queue_event(&self, event: WindowEvent) {
-        if let Some(window_id) = self.ivars().window_id.get() {
+        if let Some(window) = self.ivars().ns_window.load() {
             self.ivars()
                 .app_delegate
-                .queue_event(Event::Window(event, window_id));
+                .queue_event(Event::Window(event, window.id()));
         }
     }
 }

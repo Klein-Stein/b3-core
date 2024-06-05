@@ -10,7 +10,7 @@ pub(crate) trait WindowApi {
         size: Option<Size>,
     ) -> Self;
 
-    fn init(&mut self, window_id: WindowId);
+    fn id(&self) -> WindowId;
 
     fn set_title(&mut self, title: String);
     fn title(&self) -> String;

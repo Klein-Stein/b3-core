@@ -4,18 +4,24 @@ use std::ptr::NonNull;
 use b3_display_handler::{appkit::AppKitWindowHandler, HasWindowHandler, WindowHandler};
 use dpi::{PhysicalPosition, PhysicalSize, Position, Size};
 use objc2::{
+    declare_class,
+    msg_send_id,
+    mutability,
     rc::{autoreleasepool, Retained},
     runtime::ProtocolObject,
+    ClassType,
+    DeclaredClass,
 };
 use objc2_app_kit::{
     NSBackingStoreType,
+    NSResponder,
     NSScreen,
     NSWindow,
     NSWindowButton,
     NSWindowStyleMask,
     NSWindowTitleVisibility,
 };
-use objc2_foundation::{CGPoint, CGSize, MainThreadBound, MainThreadMarker, NSRect};
+use objc2_foundation::{CGPoint, CGSize, MainThreadBound, MainThreadMarker, NSObject, NSRect};
 
 use super::{view::View, window_delegate::WindowDelegate, window_utils::to_cgsize};
 use crate::{
@@ -27,10 +33,33 @@ use crate::{
     WindowOptions,
 };
 
+declare_class!(
+    #[derive(Debug)]
+    pub struct CocoaWindow;
+
+    unsafe impl ClassType for CocoaWindow {
+        #[inherits(NSResponder, NSObject)]
+        type Super = NSWindow;
+        type Mutability = mutability::MainThreadOnly;
+        const NAME: &'static str = "CocoaWindow";
+    }
+
+    impl DeclaredClass for CocoaWindow {}
+
+    unsafe impl CocoaWindow {
+        // Put method overridings here
+    }
+);
+
+impl CocoaWindow {
+    #[inline]
+    pub(super) fn id(&self) -> WindowId { self as *const Self as usize }
+}
+
 #[derive(Debug)]
 pub(crate) struct WindowImpl {
     delegate: MainThreadBound<Retained<WindowDelegate>>,
-    native:   MainThreadBound<Retained<NSWindow>>,
+    native:   MainThreadBound<Retained<CocoaWindow>>,
 }
 
 impl WindowImpl {
@@ -44,7 +73,16 @@ impl WindowImpl {
     }
 
     #[inline]
-    fn get_native(&self, mtm: MainThreadMarker) -> &Retained<NSWindow> { self.native.get(mtm) }
+    fn native_on_main<F, R>(&self, f: F) -> R
+    where
+        F: Send + FnOnce(&Retained<CocoaWindow>) -> R,
+        R: Send,
+    {
+        self.native.get_on_main(f)
+    }
+
+    #[inline]
+    fn get_native(&self, mtm: MainThreadMarker) -> &Retained<CocoaWindow> { self.native.get(mtm) }
 }
 
 impl WindowApi for WindowImpl {
@@ -60,7 +98,7 @@ impl WindowApi for WindowImpl {
         let app_delegate = ctx.context().get_impl().app_delegate().clone();
 
         // Create NSWindow
-        let style = if let Some(options) = &options {
+        let style_mask = if let Some(options) = &options {
             (*options).into()
         } else {
             NSWindowStyleMask(
@@ -84,14 +122,14 @@ impl WindowApi for WindowImpl {
         let content_rect = NSRect::new(CGPoint::new(200.0, 200.0), cgsize);
 
         let this = mtm.alloc();
-        let window = unsafe {
-            NSWindow::initWithContentRect_styleMask_backing_defer(
-                this,
-                content_rect,
-                style,
-                NSBackingStoreType::NSBackingStoreBuffered,
-                false,
-            )
+        let window: Retained<CocoaWindow> = unsafe {
+            msg_send_id![
+                super(this.set_ivars(())),
+                initWithContentRect: content_rect,
+                styleMask: style_mask,
+                backing: NSBackingStoreType::NSBackingStoreBuffered,
+                defer: false,
+            ]
         };
 
         // Create a window delegate
@@ -137,11 +175,7 @@ impl WindowApi for WindowImpl {
     }
 
     #[inline]
-    fn init(&mut self, window_id: WindowId) {
-        self.delegate.get_on_main(|delegate| {
-            delegate.set_window_id(window_id);
-        });
-    }
+    fn id(&self) -> WindowId { self.native_on_main(|native| native.id()) }
 
     #[inline]
     fn set_title(&mut self, title: String) {

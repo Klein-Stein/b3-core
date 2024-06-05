@@ -62,9 +62,7 @@ impl Window {
         options: Option<WindowOptions>,
         size: Option<Size>,
     ) -> Self {
-        let mut window = Self(WindowImpl::new(ctx, mode, options, size));
-        window.0.init(window.id());
-        window
+        Self(WindowImpl::new(ctx, mode, options, size))
     }
 
     /// Sets a window title.
@@ -82,7 +80,7 @@ impl Window {
     pub fn title(&self) -> String { self.0.title() }
 
     /// Returns a window ID.
-    pub fn id(&self) -> WindowId { self as *const Self as WindowId }
+    pub fn id(&self) -> WindowId { self.0.id() }
 
     /// Sets window options.
     ///
