@@ -95,14 +95,14 @@ impl WindowApi for WindowImpl {
         };
 
         // Create a window delegate
-        let window_delegate = WindowDelegate::new(mtm, app_delegate, window.clone(), mode);
+        let window_delegate = WindowDelegate::new(mtm, app_delegate.clone(), window.clone(), mode);
         autoreleasepool(|_| {
             let object = ProtocolObject::from_ref(&*window_delegate);
             window.setDelegate(Some(object));
         });
 
         // Create a root view
-        let view = View::new(&window);
+        let view = View::new(app_delegate, &window);
         window.setContentView(Some(&view));
 
         // Set post-creation window options

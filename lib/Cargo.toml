@@ -26,6 +26,7 @@ objc2-user-notifications = {version = "0.2.2", optional = true, features = ["blo
 
 [dependencies]
 b3-display-handler = {version = "0.1.2", optional = true}
+core-graphics = "0.23.2"
 dpi = "0.1.1"
 
 [features]

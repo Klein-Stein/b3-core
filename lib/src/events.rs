@@ -1,29 +1,43 @@
 //! This module contains all event that can be captured.
 
+use dpi::{PhysicalPosition, PhysicalSize};
+
 use crate::{ActiveApplication, WindowId};
 
 /// Life cycle events.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum LifeCycle {
     /// The application has just been successfully launched.
-    Start,
+    Started,
     /// The application is preparing to shut down.
-    Finish,
+    Finished,
 }
 
 /// Window events.
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, PartialEq, PartialOrd)]
 pub enum WindowEvent {
     /// The window has been displayed.
-    Show,
+    Showed,
+    /// The window has been resized.
+    Resized(PhysicalSize<u32>),
+    /// The window has been moved.
+    Moved(PhysicalPosition<i32>),
+    /// The window has gained or lost focus.
+    Focused(bool),
+    /// The window scale factor has been changed.
+    ScaleFactorChanged(f64),
+    /// The window will be redrawn.
+    RedrawRequested,
     /// The window has been closed.
-    Close,
+    CloseRequested,
+    /// The window has been destroyed.
+    Destroyed,
 }
 
 /// Main event enumeration.
 ///
 /// This enumeration is an entrypoint to all captured events.
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, PartialEq, PartialOrd)]
 pub enum Event {
     /// The event indicates that a menu item has been clicked.
     ///

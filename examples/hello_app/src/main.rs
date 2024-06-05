@@ -37,7 +37,7 @@ fn main() {
                     app.stop();
                 }
             }
-            Event::LifeCycle(LifeCycle::Start) => {
+            Event::LifeCycle(LifeCycle::Started) => {
                 println!("Hello, World!");
                 app.set_menu(Some(&menu));
             }

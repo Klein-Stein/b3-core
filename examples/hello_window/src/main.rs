@@ -147,6 +147,11 @@ impl State {
         self.windows.insert(window.id(), window);
     }
 
+    fn close_window(&mut self, window_id: WindowId) {
+        let window = self.windows.get_mut(&window_id).unwrap();
+        window.close();
+    }
+
     fn close_all(&mut self) {
         for (_, window) in self.windows.iter_mut() {
             window.close();
@@ -167,7 +172,7 @@ impl EventHandler for State {
                 "quit" => app.stop(),
                 _ => (),
             },
-            Event::LifeCycle(LifeCycle::Start) => {
+            Event::LifeCycle(LifeCycle::Started) => {
                 let icon_data = include_bytes!("assets/gears.png").to_vec();
                 let app_icon = Icon::from_data(app, &icon_data, IconType::Png).unwrap();
                 app.set_icon(Some(&app_icon));
@@ -178,7 +183,20 @@ impl EventHandler for State {
                     window.show(app);
                 }
             }
-            Event::Window(WindowEvent::Close, window_id) => self.delete_window(window_id),
+            Event::Window(WindowEvent::CloseRequested, window_id) => self.close_window(window_id),
+            Event::Window(WindowEvent::Destroyed, window_id) => self.delete_window(window_id),
+            Event::Window(WindowEvent::Moved(position), window_id) => {
+                println!("{:?}: New position: {:?}", window_id, position);
+            }
+            Event::Window(WindowEvent::Resized(size), window_id) => {
+                println!("{:?}: New size: {:?}", window_id, size);
+            }
+            Event::Window(WindowEvent::RedrawRequested, window_id) => {
+                println!("{:?}: Redrawing", window_id);
+            }
+            Event::Window(WindowEvent::Focused(focused), window_id) => {
+                println!("{:?}: Focused: {:?}", window_id, focused);
+            }
             _ => (),
         }
     }

@@ -18,7 +18,17 @@ use objc2_app_kit::{NSApp, NSApplication, NSApplicationActivationPolicy, NSAppli
 use objc2_foundation::{MainThreadMarker, NSNotification, NSObject, NSObjectProtocol};
 
 use super::panicinfo::PanicInfo;
-use crate::{platform::Wrapper, ActiveApplication, Event, EventHandler, Icon, LifeCycle, Menu};
+use crate::{
+    platform::Wrapper,
+    ActiveApplication,
+    Event,
+    EventHandler,
+    Icon,
+    LifeCycle,
+    Menu,
+    WindowEvent,
+    WindowId,
+};
 
 #[derive(Debug)]
 pub(super) struct ActivationPolicy(NSApplicationActivationPolicy);
@@ -83,13 +93,13 @@ declare_class!(
             #[allow(deprecated)]
             app.activateIgnoringOtherApps(self.ivars().activate_ignoring_other_apps);
 
-            self.handle_event(Event::LifeCycle(LifeCycle::Start));
+            self.handle_event(Event::LifeCycle(LifeCycle::Started));
             self.set_is_running(true);
         }
 
         #[method(applicationWillTerminate:)]
         fn will_terminate(&self, _notification: &NSNotification) {
-            self.handle_event(Event::LifeCycle(LifeCycle::Finish));
+            self.handle_event(Event::LifeCycle(LifeCycle::Finished));
             self.set_is_running(false);
         }
     }
@@ -172,6 +182,12 @@ impl AppDelegate {
                 handler.on_event(app, event);
             }
         }
+    }
+
+    pub(super) fn handle_redraw(&self, window_id: WindowId) {
+        // Redraw request might come out of order from the OS.
+        // -> Don't go back into the event handler when our callstack originates from there.
+        self.handle_event(Event::Window(WindowEvent::RedrawRequested, window_id));
     }
 
     #[inline]

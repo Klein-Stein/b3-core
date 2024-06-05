@@ -5,7 +5,7 @@ use objc2::{
     declare_class,
     msg_send_id,
     mutability,
-    rc::Retained,
+    rc::{autoreleasepool, Retained},
     runtime::NSObjectProtocol,
     ClassType,
     DeclaredClass,
@@ -23,16 +23,24 @@ use objc2_foundation::{CGRect, MainThreadMarker, NSNotification, NSObject, NSStr
 
 use super::{
     app_delegate::AppDelegate,
-    window_utils::{to_cgpoint, to_cgsize},
+    window_utils::{to_b3_position, to_cgsize, to_macos_coords},
 };
-use crate::{Event, InitMode, WindowEvent, WindowId, WindowOptions};
+use crate::{
+    platform_impl::macos::view::View,
+    Event,
+    InitMode,
+    WindowEvent,
+    WindowId,
+    WindowOptions,
+};
 
 #[derive(Debug)]
 pub(super) struct State {
-    window_id:    Cell<Option<WindowId>>,
-    app_delegate: Retained<AppDelegate>,
-    window:       Retained<NSWindow>,
-    init_mode:    Cell<Option<InitMode>>,
+    window_id:     Cell<Option<WindowId>>,
+    app_delegate:  Retained<AppDelegate>,
+    window:        Retained<NSWindow>,
+    init_mode:     Cell<Option<InitMode>>,
+    prev_position: Cell<PhysicalPosition<i32>>,
 }
 
 declare_class!(
@@ -56,9 +64,34 @@ declare_class!(
     unsafe impl NSObjectProtocol for WindowDelegate {}
 
     unsafe impl NSWindowDelegate for WindowDelegate {
+        #[method(windowDidResize:)]
+        unsafe fn window_did_resize(&self, _notification: &NSNotification) { self.emit_move_event(); }
+
+        #[method(windowDidMove:)]
+        unsafe fn window_did_move(&self, _notification: &NSNotification) { self.emit_move_event(); }
+
+        #[method(windowDidBecomeKey:)]
+        unsafe fn window_did_become_key(&self, _notification: &NSNotification) {
+            self.queue_event(WindowEvent::Focused(true));
+        }
+
+        #[method(windowDidResignKey:)]
+        unsafe fn window_did_resign_key(&self, _notification: &NSNotification) {
+            self.queue_event(WindowEvent::Focused(false));
+        }
+
+        #[method(windowShouldClose:)]
+        unsafe fn window_should_close(&self, _sender: &NSWindow) -> bool {
+            self.queue_event(WindowEvent::CloseRequested);
+            false
+        }
+
         #[method(windowWillClose:)]
         unsafe fn will_close(&self, _notification: &NSNotification) {
-            self.handle_event(WindowEvent::Close);
+            autoreleasepool(|_| {
+                self.window().setDelegate(None);
+            });
+            self.queue_event(WindowEvent::Destroyed);
         }
     }
 );
@@ -72,20 +105,32 @@ impl WindowDelegate {
         init_mode: InitMode,
     ) -> Retained<WindowDelegate> {
         let this = mtm.alloc();
+        let scale_factor = window.backingScaleFactor();
+        let origin = to_b3_position(&window);
         let this = this.set_ivars(State {
             window_id: Cell::new(None),
             app_delegate,
             window,
             init_mode: Cell::new(Some(init_mode)),
+            prev_position: Cell::new(
+                LogicalPosition::new(origin.x, origin.y).to_physical(scale_factor),
+            ),
         });
         unsafe { msg_send_id![super(this), init] }
     }
 
     #[inline]
-    fn handle_event(&self, event: WindowEvent) {
-        self.ivars()
-            .app_delegate
+    fn queue_event(&self, event: WindowEvent) {
+        self.app_delegate()
             .queue_event(Event::Window(event, self.window_id()));
+    }
+
+    fn emit_move_event(&self) {
+        let position = self.position();
+        if position != self.ivars().prev_position.get() {
+            self.ivars().prev_position.set(position);
+            self.queue_event(WindowEvent::Moved(position));
+        }
     }
 
     #[inline]
@@ -106,6 +151,10 @@ impl WindowDelegate {
     #[inline]
     pub(super) fn set_window_id(&self, window_id: WindowId) {
         self.ivars().window_id.set(Some(window_id));
+        if let Some(view) = self.window().contentView() {
+            let view: Retained<View> = unsafe { Retained::cast(view) };
+            view.set_window_id(window_id);
+        }
     }
 
     #[inline]
@@ -172,7 +221,7 @@ impl WindowDelegate {
         let window = self.window();
         window.makeKeyAndOrderFront(None);
 
-        self.handle_event(WindowEvent::Show);
+        self.queue_event(WindowEvent::Showed);
 
         self.sync_with_init_mode();
     }
@@ -184,7 +233,7 @@ impl WindowDelegate {
         let window = self.window();
         unsafe { ns_app.runModalForWindow(window) };
 
-        self.handle_event(WindowEvent::Show);
+        self.queue_event(WindowEvent::Showed);
 
         self.sync_with_init_mode();
     }
@@ -227,14 +276,15 @@ impl WindowDelegate {
             Position::Physical(position) => position.to_logical(scale_factor),
             Position::Logical(position) => position,
         };
-        let origin = to_cgpoint(logical_position);
+        let origin = to_macos_coords(logical_position, self.window());
         unsafe { self.window().setFrameOrigin(origin) };
     }
 
     #[inline]
     pub(super) fn position(&self) -> PhysicalPosition<i32> {
-        let origin = self.window().frame().origin;
+        let window = self.window();
         let scale_factor = self.scale_factor();
+        let origin = to_b3_position(window);
         LogicalPosition::new(origin.x, origin.y).to_physical(scale_factor)
     }
 

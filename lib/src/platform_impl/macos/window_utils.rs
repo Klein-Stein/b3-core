@@ -1,5 +1,6 @@
+use core_graphics::display::CGDisplay;
 use dpi::{LogicalPosition, LogicalSize, Pixel};
-use objc2_app_kit::NSWindowStyleMask;
+use objc2_app_kit::{NSWindow, NSWindowStyleMask};
 use objc2_foundation::{CGPoint, CGSize};
 
 use crate::WindowOptions;
@@ -32,6 +33,26 @@ pub(super) fn to_cgsize<P: Pixel>(size: LogicalSize<P>) -> CGSize {
 }
 
 #[inline]
-pub(super) fn to_cgpoint<P: Pixel>(position: LogicalPosition<P>) -> CGPoint {
-    CGPoint::new(position.x.into(), position.y.into())
+pub(super) fn to_b3_position(window: &NSWindow) -> CGPoint {
+    let frame = window.frame();
+    let screen = window.screen();
+    let screen_height = match screen {
+        Some(screen) => screen.frame().size.height,
+        None => CGDisplay::main().bounds().size.height,
+    };
+    CGPoint::new(
+        frame.origin.x,
+        screen_height - frame.origin.y - frame.size.height,
+    )
+}
+
+#[inline]
+pub(super) fn to_macos_coords(position: LogicalPosition<f64>, window: &NSWindow) -> CGPoint {
+    let size = window.frame().size;
+    let screen = window.screen();
+    let screen_height = match screen {
+        Some(screen) => screen.frame().size.height,
+        None => CGDisplay::main().bounds().size.height,
+    };
+    CGPoint::new(position.x, screen_height + position.y - size.height)
 }

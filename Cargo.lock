@@ -17,6 +17,7 @@ version = "0.2.0"
 dependencies = [
  "b3-display-handler",
  "core-foundation",
+ "core-graphics",
  "dpi",
  "objc2",
  "objc2-app-kit",

@@ -79,7 +79,7 @@ impl EventHandler for State {
                     app.stop()
                 }
             }
-            Event::LifeCycle(LifeCycle::Start) => {
+            Event::LifeCycle(LifeCycle::Started) => {
                 app.set_menu(Some(&self.menu));
                 self.window.show(app);
 
