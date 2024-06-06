@@ -1,6 +1,6 @@
 [package]
 name = "b3-core"
-version = "0.3.1"
+version = "0.4.0"
 edition = "2021"
 description = "A cross-platform framework that provides access and management of the main elements of a graphical application."
 authors = ["Denis Sologub <ds.sologub@ya.ru>"]
@@ -20,7 +20,7 @@ targets = ["x86_64-apple-darwin", "aarch64-apple-darwin"]
 [target.'cfg(target_os = "macos")'.dependencies]
 core-foundation = "0.9.4"
 objc2 = "0.5.2"
-objc2-app-kit = {version = "0.2.2", features = ["NSApplication", "NSButton", "NSControl", "NSEvent", "NSGraphics", "NSImage", "NSGraphicsContext", "NSMenu", "NSMenuItem", "NSResponder", "NSRunningApplication", "NSScreen", "NSView", "NSWindow"]}
+objc2-app-kit = {version = "0.2.2", features = ["NSApplication", "NSButton", "NSControl", "NSEvent", "NSGraphics", "NSImage", "NSGraphicsContext", "NSMenu", "NSMenuItem", "NSResponder", "NSRunningApplication", "NSScreen", "NSTrackingArea", "NSView", "NSWindow"]}
 objc2-foundation = {version = "0.2.2", features = ["dispatch", "NSEnumerator", "NSNotification", "NSObject", "NSString", "NSThread", "NSUUID"]}
 objc2-user-notifications = {version = "0.2.2", optional = true, features = ["block2", "UNUserNotificationCenter", "UNNotificationRequest", "UNNotificationContent", "UNNotificationTrigger"]}
 

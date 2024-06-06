@@ -143,6 +143,9 @@ impl WindowApi for WindowImpl {
         let view = View::new(app_delegate, &window);
         window.setContentView(Some(&view));
 
+        // Enable mouse motion events.
+        window.setAcceptsMouseMovedEvents(true);
+
         // Set post-creation window options
         if let Some(options) = &options {
             let title_visibility = if options.borderless {

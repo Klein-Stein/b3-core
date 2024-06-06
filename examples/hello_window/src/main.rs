@@ -12,6 +12,7 @@ use b3_core::{
     LifeCycle,
     Menu,
     MenuItem,
+    MouseEvent,
     NotificationBuilder,
     Window,
     WindowEvent,
@@ -183,20 +184,52 @@ impl EventHandler for State {
                     window.show(app);
                 }
             }
-            Event::Window(WindowEvent::CloseRequested, window_id) => self.close_window(window_id),
-            Event::Window(WindowEvent::Destroyed, window_id) => self.delete_window(window_id),
-            Event::Window(WindowEvent::Moved(position), window_id) => {
-                println!("{:?}: New position: {:?}", window_id, position);
-            }
-            Event::Window(WindowEvent::Resized(size), window_id) => {
-                println!("{:?}: New size: {:?}", window_id, size);
-            }
-            Event::Window(WindowEvent::RedrawRequested, window_id) => {
-                println!("{:?}: Redrawing", window_id);
-            }
-            Event::Window(WindowEvent::Focused(focused), window_id) => {
-                println!("{:?}: Focused: {:?}", window_id, focused);
-            }
+            Event::Window(w_event, window_id) => match w_event {
+                WindowEvent::CloseRequested => self.close_window(window_id),
+                WindowEvent::Destroyed => self.delete_window(window_id),
+                WindowEvent::Moved(position) => {
+                    println!("{:?}: New position: {:?}", window_id, position);
+                }
+                WindowEvent::Resized(size) => {
+                    println!("{:?}: New size: {:?}", window_id, size);
+                }
+                WindowEvent::RedrawRequested => {
+                    println!("{:?}: Redrawing", window_id);
+                }
+                WindowEvent::Focused(focused) => {
+                    println!("{:?}: Focused: {:?}", window_id, focused);
+                }
+                WindowEvent::Mouse(MouseEvent::Input {
+                    button,
+                    state,
+                }) => {
+                    println!(
+                        "{:?}: Mouse button: {:?}, state: {:?}",
+                        window_id, button, state
+                    );
+                }
+                WindowEvent::Mouse(MouseEvent::Moved {
+                    position,
+                }) => {
+                    println!("{:?}: Mouse moved: {:?}", window_id, position);
+                }
+                WindowEvent::Mouse(MouseEvent::Entered) => {
+                    println!("{:?}: Mouse has entered", window_id);
+                }
+                WindowEvent::Mouse(MouseEvent::Exited) => {
+                    println!("{:?}: Mouse has exited", window_id);
+                }
+                WindowEvent::Mouse(MouseEvent::Scroll {
+                    delta,
+                    phase,
+                }) => {
+                    println!(
+                        "{:?}: Mouse scrolled: {:?}, phase: {:?}",
+                        window_id, delta, phase
+                    );
+                }
+                _ => (),
+            },
             _ => (),
         }
     }

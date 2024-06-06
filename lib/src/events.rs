@@ -13,6 +13,85 @@ pub enum LifeCycle {
     Finished,
 }
 
+/// Mouse buttons.
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum MouseButton {
+    /// Left mouse button.
+    Left,
+    /// Middle mouse button (or mouse wheel).
+    Middle,
+    /// Right mouse button.
+    Right,
+    /// Back mouse button.
+    Back,
+    /// Forward mouse button.
+    Forward,
+    /// Other mouse button.
+    Other {
+        /// Other mouse button ID/number (starts with 5).
+        id: u16,
+    },
+}
+
+/// Mouse button state.
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum MouseButtonState {
+    /// Mouse button has been pressed.
+    Pressed,
+    /// Mouse button has been released.
+    Released,
+}
+
+/// Scrolling delta.
+#[derive(Debug, PartialEq, PartialOrd)]
+pub enum ScrollingDelta {
+    /// A delta value in lines.
+    Line(f32, f32),
+    /// A delta value in pixels.
+    Pixel(f64, f64),
+}
+
+/// The scrolling phase for a scroll or flick gesture.
+#[derive(Debug, PartialEq, PartialOrd)]
+pub enum ScrollingPhase {
+    /// An event phase has begun.
+    Started,
+    /// An event phase is in progress but hasn't moved since the previous event.
+    Stationary,
+    /// An event phase has changed.
+    Changed,
+    /// The event phase ended or cancelled.
+    Ended,
+}
+
+/// Mouse events.
+#[derive(Debug, PartialEq, PartialOrd)]
+pub enum MouseEvent {
+    /// Mouse button input event.
+    Input {
+        /// Mouse button (see [MouseButton]).
+        button: MouseButton,
+        /// Mouse button state (see [MouseButtonState]).
+        state:  MouseButtonState,
+    },
+    /// Mouse wheel scroll event.
+    Scroll {
+        /// Scrolling delta value.
+        delta: ScrollingDelta,
+        /// Scrolling phase.
+        phase: ScrollingPhase,
+    },
+    /// Mouse cursor has been moved.
+    Moved {
+        /// New cursor position.
+        position: PhysicalPosition<f64>,
+    },
+    /// Mouse position has entered into a window view frame.
+    Entered,
+    /// Mouse position has left a window view frame.
+    Exited,
+}
+
 /// Window events.
 #[derive(Debug, PartialEq, PartialOrd)]
 pub enum WindowEvent {
@@ -32,6 +111,8 @@ pub enum WindowEvent {
     CloseRequested,
     /// The window has been destroyed.
     Destroyed,
+    /// Mouse event (see [MouseEvent]).
+    Mouse(MouseEvent),
 }
 
 /// Main event enumeration.
